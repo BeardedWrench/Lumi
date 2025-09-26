@@ -114,19 +114,7 @@ function Debug.debugElement(pass, element, depth)
   
   depth = depth or 0
   
-  local rect = element:getLayoutRect()
-  local contentRect = element:getContentRect()
-  
-  Debug.debug("Element: %s (depth: %d)", element.className or "Unknown", depth)
-  if rect then
-    Debug.debug("  Layout: %.0f,%.0f %.0fx%.0f", rect.x, rect.y, rect.w, rect.h)
-  end
-  if contentRect then
-    Debug.debug("  Content: %.0f,%.0f %.0fx%.0f", contentRect.x, contentRect.y, contentRect.w, contentRect.h)
-  end
-  Debug.debug("  Position: %.0f,%.0f Size: %.0fx%.0f", element.x, element.y, element.w, element.h)
-  Debug.debug("  Parent: %s", element.parent and (element.parent.className or "Unknown") or "None")
-  
+  -- Only draw debug overlays, don't log every frame
   Debug.drawElementBounds(pass, element)
   Debug.drawLayoutRect(pass, element)
   Debug.drawContentRect(pass, element)
@@ -142,9 +130,33 @@ end
 function Debug.debugUI(pass, rootElement)
   if not debugState.enabled then return end
   
-  Debug.info("=== UI DEBUG SESSION ===")
+  -- Only draw debug overlays, don't log every frame
   Debug.debugElement(pass, rootElement)
-  Debug.info("=== END DEBUG SESSION ===")
+end
+
+function Debug.logElementInfo(element, depth)
+  if not element or not element.visible then return end
+  
+  depth = depth or 0
+  
+  local rect = element:getLayoutRect()
+  local contentRect = element:getContentRect()
+  
+  Debug.info("Element: %s (depth: %d)", element.className or "Unknown", depth)
+  if rect then
+    Debug.info("  Layout: %.0f,%.0f %.0fx%.0f", rect.x, rect.y, rect.w, rect.h)
+  end
+  if contentRect then
+    Debug.info("  Content: %.0f,%.0f %.0fx%.0f", contentRect.x, contentRect.y, contentRect.w, contentRect.h)
+  end
+  Debug.info("  Position: %.0f,%.0f Size: %.0fx%.0f", element.x, element.y, element.w, element.h)
+  Debug.info("  Parent: %s", element.parent and (element.parent.className or "Unknown") or "None")
+  
+  if element.children then
+    for _, child in ipairs(element.children) do
+      Debug.logElementInfo(child, depth + 1)
+    end
+  end
 end
 
 function Debug.enable()

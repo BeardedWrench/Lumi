@@ -93,12 +93,17 @@ function PanelElement:setSize(w, h)
   return result
 end
 
+function PanelElement:setVisible(visible)
+  PanelElement.__super.setVisible(self, visible)
+  return self
+end
+
 function PanelElement:setClosable(closable)
   self.closable = closable
   if closable and self.titlebar and not self.closeButton then
     self.closeButton = Button:Create()
+      :setPadding(0)
       :setText("×")
-      :setPadding(2)  
       :setAnchors('right', 'center')
       :setPos(8, 0)
       :setIdleColor(0.3, 0.3, 0.3, 1.0)
@@ -110,8 +115,9 @@ function PanelElement:setClosable(closable)
       :setTextColor(0.8, 0.8, 0.8, 1.0)
       :setZIndex(Theme.zLayers.content + 2)
       :onClick(function()
-        if self.onClose then
-          self.onClose()
+        local panel = self
+        if panel.onClose then
+          panel.onClose()
         end
       end)
     self.titlebar:addChild(self.closeButton)
@@ -205,9 +211,6 @@ end
 
 function PanelElement:draw(pass)
   PanelElement.__super.draw(self, pass)
-  for _, child in ipairs(self.children) do
-    child:draw(pass)
-  end
 end
 
 function PanelElement:hitTest(x, y)

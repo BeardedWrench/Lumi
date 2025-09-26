@@ -15,6 +15,12 @@ function createMinimalUI()
     :setAnchors('center', 'center')
     :setClosable(true)
   
+  -- Set the close callback after creating the panel
+  panel:onClose(function()
+    -- Hide the panel instead of quitting the app
+    panel:setVisible(false)
+  end)
+  
   local stack = Stack:Create()
     :setDirection('column')
     :setGap(8)
@@ -57,8 +63,40 @@ function lovr.keypressed(key)
   if key == 'escape' then
     lovr.event.quit()
   elseif key == 'd' or key == 'D' then
-    
-    UI.Debug.showAll()
-    print("Debug mode enabled - you should see colored outlines around elements")
+    local Debug = require('lumi.core.debug')
+    Debug.toggle()
+    if Debug.getState().enabled then
+      Debug.showAll()
+    else
+      print("Debug mode disabled")
+    end
+  elseif key == 'i' or key == 'I' then
+    local Debug = require('lumi.core.debug')
+    local UI = require('lumi')
+    local context = UI.getContext()
+    local root = context:getRoot()
+    if root then
+      print("=== ELEMENT INFORMATION ===")
+      Debug.logElementInfo(root)
+      print("=== END ELEMENT INFORMATION ===")
+    end
   end
+end
+
+function lovr.mousepressed(x, y, button)
+  UI.mousepressed(x, y, button)
+end
+
+function lovr.mousereleased(x, y, button)
+  UI.mousereleased(x, y, button)
+end
+
+function lovr.mousemoved(x, y, dx, dy)
+  -- Forward mouse movement to UI system
+  local Input = require('lumi.core.input')
+  Input.updateMousePosition(x, y)
+end
+
+function lovr.textinput(text)
+  UI.textinput(text)
 end

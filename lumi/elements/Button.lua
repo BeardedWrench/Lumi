@@ -29,6 +29,33 @@ function ButtonElement:init()
   self._state = 'idle' 
   self._clicked = false
   self._textLabel = nil
+  self.onClick = nil
+  
+  -- Set up mouse event callbacks
+  self._onMouseEnter = function()
+    self:onMouseEnter()
+  end
+  
+  self._onMouseLeave = function()
+    self:onMouseLeave()
+  end
+  
+  self._onMousePress = function(button, x, y)
+    self:onMousePress(button, x, y)
+  end
+  
+  self._onMouseRelease = function(button, x, y)
+    self:onMouseRelease(button, x, y)
+  end
+  
+  self._onClick = function(button, x, y)
+    if self.onClick then
+      self:onClick(button, x, y)
+    end
+  end
+  
+  -- Set initial appearance
+  self:_updateAppearance()
 end
 
 function ButtonElement:setText(text)
@@ -50,21 +77,13 @@ function ButtonElement:setText(text)
       :setAnchors('center', 'center')  
       :setPos(0, 0)
     self:addChild(self._textLabel)
+    
+    -- Auto-size the button based on text content
+    self:_updateButtonSize()
   else
     self._textLabel:setText(self.text)
-  end
-  
-  local TextUtil = require('lumi.core.util.text')
-  local textWidth = TextUtil.estimateWidth(self.text)
-  local textHeight = self.fontSize
-  local buttonWidth = textWidth + self.padding[4] + self.padding[2]  
-  local buttonHeight = textHeight + self.padding[1] + self.padding[3]  
-  
-  if not self._explicitWidth then
-    self.w = buttonWidth
-  end
-  if not self._explicitHeight then
-    self.h = buttonHeight
+    -- Update button size when text changes
+    self:_updateButtonSize()
   end
   
   return self
@@ -174,6 +193,42 @@ function ButtonElement:setDisabledTextColor(r, g, b, a)
   return self
 end
 
+function ButtonElement:_updateButtonSize()
+  if not self._textLabel then
+    return
+  end
+  
+  local TextUtil = require('lumi.core.util.text')
+  local textWidth = TextUtil.estimateWidth(self.text)
+  local textHeight = self.fontSize  -- Use fontSize as height estimate
+  
+  -- Add padding to text dimensions
+  local horizontalPadding = self.padding[2] + self.padding[4]  -- left + right
+  local verticalPadding = self.padding[1] + self.padding[3]    -- top + bottom
+  
+  local buttonWidth = textWidth + horizontalPadding
+  local buttonHeight = textHeight + verticalPadding
+  
+  -- Only update size if not explicitly set
+  if not self._explicitWidth then
+    self.w = buttonWidth
+  end
+  if not self._explicitHeight then
+    self.h = buttonHeight
+  end
+  -- Button auto-sizing complete
+end
+
+function ButtonElement:setCallback(callback)
+  self.onClick = callback
+  return self
+end
+
+function ButtonElement:onClick(callback)
+  self.onClick = callback
+  return self
+end
+
 function ButtonElement:setPadding(padding)
   if type(padding) == "number" then
     self.padding = {padding, padding, padding, padding}
@@ -210,23 +265,23 @@ end
 function ButtonElement:onMouseEnter()
   if not self.disabled then
     self._state = 'hover'
+    self:_updateAppearance()
   end
-  ButtonElement.__super.onMouseEnter(self)
 end
 
 function ButtonElement:onMouseLeave()
   if not self.disabled then
     self._state = 'idle'
+    self:_updateAppearance()
   end
-  ButtonElement.__super.onMouseLeave(self)
 end
 
 function ButtonElement:onMousePress(button, x, y)
   if button == 1 and not self.disabled then 
     self._state = 'press'
     self._clicked = true
+    self:_updateAppearance()
   end
-  ButtonElement.__super.onMousePress(self, button, x, y)
 end
 
 function ButtonElement:onMouseRelease(button, x, y)
@@ -234,18 +289,16 @@ function ButtonElement:onMouseRelease(button, x, y)
     if self._clicked then
       self._state = 'hover'
       self._clicked = false
+      self:_updateAppearance()
       if self.onClick then
         self:onClick(button, x, y)
       end
     end
   end
-  ButtonElement.__super.onMouseRelease(self, button, x, y)
 end
 
-function ButtonElement:draw(pass)
-  if not self.visible then
-    return
-  end
+function ButtonElement:_updateAppearance()
+  -- Update background color based on state
   local bgColor
   if self.disabled then
     bgColor = self.disabledColor
@@ -259,6 +312,7 @@ function ButtonElement:draw(pass)
   
   self:setBackgroundColor(bgColor[1], bgColor[2], bgColor[3], bgColor[4])
   
+  -- Update text color based on state
   if self._textLabel then
     local textColor
     if self.disabled then
@@ -273,18 +327,18 @@ function ButtonElement:draw(pass)
     
     self._textLabel:setTextColor(textColor[1], textColor[2], textColor[3], textColor[4])
   end
-  
-  local layoutRect = self:getLayoutRect()
-  if layoutRect then
-    local Draw = require('lumi.core.draw')
-    Draw.rect(pass, layoutRect.x, layoutRect.y, layoutRect.w, layoutRect.h, 0, 1, 0, 1)  
+end
+
+function ButtonElement:draw(pass)
+  if not self.visible then
+    return
   end
   
+  -- Ensure appearance is up to date
+  self:_updateAppearance()
+  
+  -- Draw the button background and children (Base element handles both)
   ButtonElement.__super.draw(self, pass)
-  
-  for _, child in ipairs(self.children) do
-    child:draw(pass)
-  end
 end
 
 Button.ButtonElement = ButtonElement

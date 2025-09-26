@@ -27,10 +27,6 @@ function UIContext:init()
   end
   
   Input.init()
-  
-  Input.findElementAt = function(x, y)
-    return self:findElementAt(x, y)
-  end
 end
 
 function UIContext:setScale(scale)
@@ -107,6 +103,18 @@ function UIContext:getFont()
   return self.font
 end
 
+function UIContext:mousepressed(x, y, button)
+  Input.onMousePress(button, x, y)
+end
+
+function UIContext:mousereleased(x, y, button)
+  Input.onMouseRelease(button, x, y)
+end
+
+function UIContext:textinput(text)
+  Input.onTextInput(text)
+end
+
 function UIContext:update(dt)
   Input.update(dt)
   self:updateLayout()
@@ -137,6 +145,10 @@ function UIContext:draw(pass, width, height)
   if self.debug then
     self.debug:debugUI(pass, self.root)
   end
+  
+      -- Draw debug overlays for hitboxes
+      local Input = require('lumi.core.input')
+      Input.drawDebugOverlays(pass)
 end
 
 function UIContext:addToZLayer(element, zLayer)

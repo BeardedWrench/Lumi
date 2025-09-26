@@ -72,6 +72,21 @@ function UI.setEnableScaling(enable)
   context:setEnableScaling(enable)
 end
 
+function UI.mousepressed(x, y, button)
+  local context = UI.getContext()
+  context:mousepressed(x, y, button)
+end
+
+function UI.mousereleased(x, y, button)
+  local context = UI.getContext()
+  context:mousereleased(x, y, button)
+end
+
+function UI.textinput(text)
+  local context = UI.getContext()
+  context:textinput(text)
+end
+
 setmetatable(UI, {
   __index = function(table, key)
     if key == 'Panel' then

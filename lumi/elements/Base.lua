@@ -245,37 +245,37 @@ function BaseElement:setTooltip(text)
 end
 
 function BaseElement:onClick(callback)
-  self.onClick = callback
+  self._onClick = callback
   return self
 end
 
 function BaseElement:onHover(callback)
-  self.onHover = callback
+  self._onHover = callback
   return self
 end
 
 function BaseElement:onMouseEnter(callback)
-  self.onMouseEnter = callback
+  self._onMouseEnter = callback
   return self
 end
 
 function BaseElement:onMouseLeave(callback)
-  self.onMouseLeave = callback
+  self._onMouseLeave = callback
   return self
 end
 
 function BaseElement:onMouseMove(callback)
-  self.onMouseMove = callback
+  self._onMouseMove = callback
   return self
 end
 
 function BaseElement:onMousePress(callback)
-  self.onMousePress = callback
+  self._onMousePress = callback
   return self
 end
 
 function BaseElement:onMouseRelease(callback)
-  self.onMouseRelease = callback
+  self._onMouseRelease = callback
   return self
 end
 
@@ -314,7 +314,20 @@ function BaseElement:layout(rect)
 end
 
 function BaseElement:getLayoutRect()
-  return self._layoutRect
+  if self._layoutRect then
+    return self._layoutRect
+  end
+  
+  -- Fallback: create a basic layout rect if none exists
+  local rect = {
+    x = self.x or 0,
+    y = self.y or 0,
+    w = self.w or 0,
+    h = self.h or 0
+  }
+  
+  self._layoutRect = rect
+  return rect
 end
 
 
@@ -367,13 +380,15 @@ function BaseElement:draw(pass)
   if self.backgroundColor then
     local bg = self.backgroundColor
     local alpha = bg[4] * self.alpha
-    
+    local Draw = require('lumi.core.draw')
+    Draw.rect(rect.x, rect.y, rect.w, rect.h, bg[1], bg[2], bg[3], alpha)
   end
   
   if self.borderColor and self.borderWidth > 0 then
     local border = self.borderColor
     local alpha = border[4] * self.alpha
-    
+    local Draw = require('lumi.core.draw')
+    Draw.rectBorder(rect.x, rect.y, rect.w, rect.h, self.borderWidth, border[1], border[2], border[3], alpha)
   end
   
   for _, child in ipairs(self.children) do
