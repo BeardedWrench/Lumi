@@ -1,7 +1,3 @@
--- Debug Demo for Lumi UI
--- This demo shows how to use the debug tool to diagnose layout issues
-
--- Add current directory to package path so we can require 'lumi'
 package.path = package.path .. ";./?.lua;./?/init.lua"
 
 local UI = require('lumi')
@@ -11,32 +7,28 @@ local Stack = UI.Stack
 local Label = UI.Label
 local Button = UI.Button
 
--- Demo state
 local demoState = {
   panelVisible = true,
   inputText = "",
   debugEnabled = false
 }
 
--- Create demo UI
 function createDemoUI()
-  -- Main panel - positioned to be visible on screen
   local mainPanel = Panel:Create()
     :setTitle("Debug Test Panel")
     :setSize(400, 300)
-    :setAnchors('left', 'top')
-    :setPos(200, 150)
+    :setAnchors('center', 'center')
     :setClosable(true)
     :setDraggable(true)
 
-  -- Create a simple stack inside the panel
+  
   local testStack = Stack:Create()
     :setDirection('column')
     :setGap(10)
     :setPadding(20, 20, 20, 20)
     :setPos(0, 0)
 
-  -- Create some test elements
+  
   local testLabel1 = Label:Create()
     :setText("Test Label 1")
     :setFontSize(16)
@@ -49,20 +41,16 @@ function createDemoUI()
     :setText("Test Button")
     :setSize(100, 30)
 
-  -- Add elements to stack
   testStack:addChild(testLabel1)
   testStack:addChild(testLabel2)
   testStack:addChild(testButton)
 
-  -- Add stack to panel
   mainPanel:addChild(testStack)
 
   return mainPanel
 end
 
--- LÖVR callbacks
 function lovr.load()
-  -- Create and set the demo UI as root
   local mainPanel = createDemoUI()
   UI.setRoot(mainPanel)
   

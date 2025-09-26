@@ -1,30 +1,27 @@
--- UI Debug Tool for Lumi
--- Provides visual and console debugging for UI layout issues
-
 local Debug = {}
 local Draw = require('lumi.core.draw')
 local Theme = require('lumi.core.theme')
 
--- Debug state
+
 local debugState = {
   enabled = false,
   showBounds = false,
   showLayoutRects = false,
   showContentRects = false,
   showHierarchy = false,
-  logLevel = 'info' -- 'debug', 'info', 'warn', 'error'
+  logLevel = 'info' 
 }
 
--- Debug colors
+
 local debugColors = {
-  bounds = {1, 0, 0, 0.8},      -- Red for element bounds
-  layoutRect = {0, 1, 0, 0.8},  -- Green for layout rects
-  contentRect = {0, 0, 1, 0.8}, -- Blue for content rects
-  hierarchy = {1, 1, 0, 0.8},   -- Yellow for hierarchy
-  text = {1, 1, 1, 1}           -- White for text
+  bounds = {1, 0, 0, 0.8},      
+  layoutRect = {0, 1, 0, 0.8},  
+  contentRect = {0, 0, 1, 0.8}, 
+  hierarchy = {1, 1, 0, 0.8},   
+  text = {1, 1, 1, 1}           
 }
 
--- Logging functions
+
 function Debug.log(level, message, ...)
   if not debugState.enabled then return end
   
@@ -54,7 +51,7 @@ function Debug.error(message, ...)
   Debug.log('error', message, ...)
 end
 
--- Visual debugging functions
+
 function Debug.drawElementBounds(pass, element, color)
   if not debugState.showBounds then return end
   
@@ -64,7 +61,7 @@ function Debug.drawElementBounds(pass, element, color)
   color = color or debugColors.bounds
   Draw.rectBorder(pass, rect.x, rect.y, rect.w, rect.h, 2, color[1], color[2], color[3], color[4])
   
-  -- Draw element info
+  
   local info = string.format("%s\n%.0f,%.0f %.0fx%.0f", 
     element.className or "Unknown", 
     rect.x, rect.y, rect.w, rect.h)
@@ -90,7 +87,7 @@ function Debug.drawContentRect(pass, element, color)
   color = color or debugColors.contentRect
   Draw.rectBorder(pass, rect.x, rect.y, rect.w, rect.h, 1, color[1], color[2], color[3], color[4])
   
-  -- Draw content info
+  
   local info = string.format("Content: %.0f,%.0f %.0fx%.0f", rect.x, rect.y, rect.w, rect.h)
   Draw.text(pass, info, rect.x, rect.y - 15, 10, color[1], color[2], color[3], color[4])
 end
@@ -102,7 +99,7 @@ function Debug.drawHierarchy(pass, element, depth)
   local rect = element:getLayoutRect()
   if not rect then return end
   
-  -- Draw hierarchy line
+  
   if element.parent then
     local parentRect = element.parent:getLayoutRect()
     if parentRect then
@@ -114,18 +111,18 @@ function Debug.drawHierarchy(pass, element, depth)
     end
   end
   
-  -- Draw depth indicator
+  
   local depthText = string.rep("  ", depth) .. (element.className or "Unknown")
   Draw.text(pass, depthText, rect.x, rect.y - 5, 8, debugColors.text[1], debugColors.text[2], debugColors.text[3], debugColors.text[4])
 end
 
--- Recursive debugging function
+
 function Debug.debugElement(pass, element, depth)
   if not element or not element.visible then return end
   
   depth = depth or 0
   
-  -- Log element info
+  
   local rect = element:getLayoutRect()
   local contentRect = element:getContentRect()
   
@@ -139,13 +136,13 @@ function Debug.debugElement(pass, element, depth)
   Debug.debug("  Position: %.0f,%.0f Size: %.0fx%.0f", element.x, element.y, element.w, element.h)
   Debug.debug("  Parent: %s", element.parent and (element.parent.className or "Unknown") or "None")
   
-  -- Draw visual debug info
+  
   Debug.drawElementBounds(pass, element)
   Debug.drawLayoutRect(pass, element)
   Debug.drawContentRect(pass, element)
   Debug.drawHierarchy(pass, element, depth)
   
-  -- Debug children
+  
   if element.children then
     for _, child in ipairs(element.children) do
       Debug.debugElement(pass, child, depth + 1)
@@ -153,7 +150,7 @@ function Debug.debugElement(pass, element, depth)
   end
 end
 
--- Main debug function
+
 function Debug.debugUI(pass, rootElement)
   if not debugState.enabled then return end
   
@@ -162,7 +159,7 @@ function Debug.debugUI(pass, rootElement)
   Debug.info("=== END DEBUG SESSION ===")
 end
 
--- Control functions
+
 function Debug.enable()
   debugState.enabled = true
   Debug.info("UI Debug enabled")
@@ -219,12 +216,12 @@ function Debug.hideAll()
   Debug.info("All debug displays disabled")
 end
 
--- Get debug state
+
 function Debug.getState()
   return debugState
 end
 
--- Export the debug tool
+
 Debug.Debug = Debug
 Debug.Create = function() return Debug end
 

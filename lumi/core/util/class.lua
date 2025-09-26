@@ -1,6 +1,3 @@
--- Lightweight OOP helper for Lumi UI elements
--- Provides :Create() and :extend() functionality
-
 local Class = {}
 
 function Class:extend(child)
@@ -18,7 +15,6 @@ function Class:extend(child)
     return instance
   end
   
-  -- Make extend method available on extended classes
   child_class.extend = Class.extend
   
   return child_class

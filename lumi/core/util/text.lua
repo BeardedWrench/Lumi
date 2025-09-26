@@ -1,15 +1,12 @@
--- Text utility functions for Lumi UI
 local Theme = require('lumi.core.theme')
 
 local Text = {}
 local font = lovr.graphics.newFont(Theme.typography.fontSize)
 
--- Get actual text width using LÖVR's default font metrics
 function Text.estimateWidth(text)
   return font:getWidth(text) * Theme.typography.fontSize
 end
 
--- Wrap text to fit within given width
 function Text.wrap(text, maxWidth, mode)
   mode = mode or 'word'
   
@@ -48,7 +45,7 @@ function Text.wrap(text, maxWidth, mode)
         table.insert(lines, currentLine)
         currentLine = word
       else
-        -- Single word/char is too long, force it
+        
         table.insert(lines, word)
         currentLine = ""
       end
@@ -62,7 +59,6 @@ function Text.wrap(text, maxWidth, mode)
   return lines
 end
 
--- Truncate text with ellipsis
 function Text.truncate(text, maxWidth)
   local ellipsis = "..."
   local ellipsisWidth = Text.estimateWidth(ellipsis)
@@ -79,7 +75,6 @@ function Text.truncate(text, maxWidth)
   return truncated .. ellipsis
 end
 
--- Get text alignment offset
 function Text.getAlignOffset(text, maxWidth, align)
   align = align or 'left'
   local textWidth = Text.estimateWidth(text)

@@ -1,6 +1,3 @@
--- Stack layout engine for Lumi UI
--- Provides flexbox-like layout behavior
-
 local Stack = {}
 local Class = require('lumi.core.util.class')
 local Base = require('lumi.elements.Base')
@@ -10,27 +7,27 @@ local Theme = require('lumi.core.theme')
 local LayoutSystem = require('lumi.core.layout_system')
 local Draw = require('lumi.core.draw')
 
--- Stack class
+
 local StackElement = Base.BaseElement:extend()
 
 function StackElement:init()
   StackElement.__super.init(self)
   
-  -- Set className for layout system recognition
+  
   self.className = "StackElement"
   
-  -- Stack-specific properties
-  self.direction = Layout.DIRECTION.ROW -- row or column
-  self.justify = Layout.JUSTIFY.START -- start, end, center, space-between, space-around, space-evenly
-  self.align = Layout.ALIGN.START -- start, end, center, stretch
+  
+  self.direction = Layout.DIRECTION.ROW 
+  self.justify = Layout.JUSTIFY.START 
+  self.align = Layout.ALIGN.START 
   self.gap = Theme.spacing.gap
   self.wrap = false
   
-  -- Internal state
+  
   self._layoutLines = {}
 end
 
--- Stack setters
+
 function StackElement:setDirection(direction)
   self.direction = direction or Layout.DIRECTION.ROW
   return self
@@ -56,7 +53,7 @@ function StackElement:setWrap(wrap)
   return self
 end
 
--- Override preferred size to account for children
+
 function StackElement:preferredSize()
   if #self.children == 0 then
     return StackElement.__super.preferredSize(self)
@@ -65,7 +62,7 @@ function StackElement:preferredSize()
   local w, h = 0, 0
   
   if self.direction == Layout.DIRECTION.ROW then
-    -- Calculate width and height for row direction
+    
     local totalWidth = 0
     local maxHeight = 0
     
@@ -82,7 +79,7 @@ function StackElement:preferredSize()
     w = totalWidth
     h = maxHeight
   else
-    -- Calculate width and height for column direction
+    
     local maxWidth = 0
     local totalHeight = 0
     
@@ -103,10 +100,10 @@ function StackElement:preferredSize()
   return w, h
 end
 
--- Stack layout is handled by the main layout system
--- No need to override layout method
 
--- Layout children in a single line
+
+
+
 function StackElement:_layoutSingleLine(contentRect)
   local items = {}
   local availableSize
@@ -117,24 +114,24 @@ function StackElement:_layoutSingleLine(contentRect)
     availableSize = contentRect.h
   end
   
-  -- Calculate flex sizes
+  
   local sizes = Layout.calculateFlexSizes(self.children, availableSize, self.direction, self.gap)
   
-  -- Distribute items according to justify content
+  
   local positions = Layout.distributeItems(self.children, sizes, availableSize, self.direction, self.justify, self.gap)
   
-  -- Align items on cross axis
+  
   local alignments = Layout.alignItems(self.children, sizes, 
     self.direction == Layout.DIRECTION.ROW and contentRect.h or contentRect.w, 
     self.direction, self.align)
   
-    -- Position children
+    
     for i, child in ipairs(self.children) do
       local size = sizes[i]
       local position = positions[i]
       local alignment = alignments[i]
       
-      -- Set child position relative to content area (not absolute)
+      
       if self.direction == Layout.DIRECTION.ROW then
         child:setPos(position, alignment)
       else
@@ -143,7 +140,7 @@ function StackElement:_layoutSingleLine(contentRect)
     end
 end
 
--- Layout children with wrapping
+
 function StackElement:_layoutWrapped(contentRect)
   local lines = {}
   local currentLine = {}
@@ -156,7 +153,7 @@ function StackElement:_layoutWrapped(contentRect)
     availableSize = contentRect.h
   end
   
-  -- Group children into lines
+  
   for _, child in ipairs(self.children) do
     local childW, childH = Measure.elementPreferredSize(child)
     local childSize = self.direction == Layout.DIRECTION.ROW and childW or childH
@@ -166,12 +163,12 @@ function StackElement:_layoutWrapped(contentRect)
     end
     
     if currentLineSize + childSize > availableSize and #currentLine > 0 then
-      -- Start new line
+      
       table.insert(lines, currentLine)
       currentLine = {child}
       currentLineSize = self.direction == Layout.DIRECTION.ROW and childW or childH
     else
-      -- Add to current line
+      
       table.insert(currentLine, child)
       currentLineSize = currentLineSize + childSize
     end
@@ -181,34 +178,34 @@ function StackElement:_layoutWrapped(contentRect)
     table.insert(lines, currentLine)
   end
   
-  -- Layout each line
+  
   local currentY = contentRect.y
   for lineIndex, line in ipairs(lines) do
     local lineHeight = 0
     
-    -- Calculate line height
+    
     for _, child in ipairs(line) do
       local childW, childH = Measure.elementPreferredSize(child)
       local childSize = self.direction == Layout.DIRECTION.ROW and childH or childW
       lineHeight = math.max(lineHeight, childSize)
     end
     
-    -- Calculate flex sizes for this line
+    
     local lineSizes = Layout.calculateFlexSizes(line, availableSize, self.direction, self.gap)
     
-    -- Distribute items in this line
+    
     local linePositions = Layout.distributeItems(line, lineSizes, availableSize, self.direction, self.justify, self.gap)
     
-    -- Align items in this line
+    
     local lineAlignments = Layout.alignItems(line, lineSizes, lineHeight, self.direction, self.align)
     
-    -- Position children in this line
+    
     for i, child in ipairs(line) do
       local size = lineSizes[i]
       local position = linePositions[i]
       local alignment = lineAlignments[i]
       
-      -- Set child position relative to content area (not absolute)
+      
       if self.direction == Layout.DIRECTION.ROW then
         child:setPos(position, currentY - contentRect.y + alignment)
       else
@@ -223,13 +220,13 @@ function StackElement:_layoutWrapped(contentRect)
   end
 end
 
--- Override layout to handle flexbox layout
+
 function StackElement:layout(rect)
-  -- The rect parameter is the parent's content area
-  -- Set our layout rect to this rect
+  
+  
   self._layoutRect = rect
   
-  -- Handle full width/height sizing
+  
   if self.fullWidth then
     self.w = rect.w
   end
@@ -237,10 +234,10 @@ function StackElement:layout(rect)
     self.h = rect.h
   end
   
-  -- Get content area (this will be smaller due to padding)
+  
   local contentRect = LayoutSystem.getContentArea(self, rect)
   
-  -- Layout children using flexbox
+  
   if self.wrap then
     self:_layoutWrapped(contentRect)
   else
@@ -248,7 +245,7 @@ function StackElement:layout(rect)
   end
 end
 
--- Override draw to render stack
+
 function StackElement:draw(pass)
   if not self.visible then
     return
@@ -259,14 +256,14 @@ function StackElement:draw(pass)
     return
   end
   
-  -- Draw debug background
+  
   if self.backgroundColor then
     local bg = self.backgroundColor
     local alpha = bg[4] * self.alpha
     Draw.rect(pass, rect.x, rect.y, rect.w, rect.h, bg[1], bg[2], bg[3], alpha)
   end
   
-  -- Draw stack border
+  
   if self.borderColor and self.borderWidth > 0 then
     local border = self.borderColor
     local alpha = border[4] * self.alpha
@@ -274,13 +271,13 @@ function StackElement:draw(pass)
       self.borderWidth, border[1], border[2], border[3], alpha)
   end
   
-  -- Draw children
+  
   for _, child in ipairs(self.children) do
     child:draw(pass)
   end
 end
 
--- Export the class
+
 Stack.StackElement = StackElement
 Stack.Create = function() return StackElement:Create() end
 

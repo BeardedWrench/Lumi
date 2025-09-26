@@ -1,8 +1,5 @@
--- Color utility functions for Lumi UI
-
 local Color = {}
 
--- Convert RGBA values (0-1) to hex string
 function Color.toHex(r, g, b, a)
   a = a or 1
   return string.format("#%02x%02x%02x%02x", 
@@ -12,7 +9,6 @@ function Color.toHex(r, g, b, a)
     math.floor(a * 255))
 end
 
--- Convert hex string to RGBA values (0-1)
 function Color.fromHex(hex)
   hex = hex:gsub("#", "")
   local r = tonumber(hex:sub(1, 2), 16) / 255
@@ -22,7 +18,6 @@ function Color.fromHex(hex)
   return r, g, b, a
 end
 
--- Blend two colors with given alpha
 function Color.blend(r1, g1, b1, a1, r2, g2, b2, a2, alpha)
   alpha = alpha or 0.5
   local inv_alpha = 1 - alpha
@@ -32,13 +27,11 @@ function Color.blend(r1, g1, b1, a1, r2, g2, b2, a2, alpha)
          a1 * alpha + a2 * inv_alpha
 end
 
--- Darken a color by factor (0-1)
 function Color.darken(r, g, b, a, factor)
   factor = factor or 0.2
   return r * (1 - factor), g * (1 - factor), b * (1 - factor), a
 end
 
--- Lighten a color by factor (0-1)
 function Color.lighten(r, g, b, a, factor)
   factor = factor or 0.2
   return r + (1 - r) * factor, g + (1 - g) * factor, b + (1 - b) * factor, a

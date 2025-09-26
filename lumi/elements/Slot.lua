@@ -1,31 +1,28 @@
--- Slot element for Lumi UI
--- Icon container with hover tooltip support
-
 local Slot = {}
 local Class = require('lumi.core.util.class')
 local Base = require('lumi.elements.Base')
 local Draw = require('lumi.core.draw')
 local Theme = require('lumi.core.theme')
 
--- Slot class
+
 local SlotElement = Base.BaseElement:extend()
 
 function SlotElement:init()
   SlotElement.__super.init(self)
   
-  -- Slot-specific properties
+  
   self.iconPath = nil
   self.iconColor = {1, 1, 1, 1}
   self.borderColor = Theme.colors.border
   self.hoverBorderColor = Theme.colors.borderHover
   self.pressBorderColor = Theme.colors.press
   
-  -- Internal state
+  
   self._hovered = false
   self._pressed = false
 end
 
--- Slot setters
+
 function SlotElement:setIcon(path)
   self.iconPath = path
   return self
@@ -67,18 +64,18 @@ function SlotElement:setPressBorderColor(r, g, b, a)
   return self
 end
 
--- Override preferred size
+
 function SlotElement:preferredSize()
   local w, h = SlotElement.__super.preferredSize(self)
   
-  -- Default slot size
+  
   w = math.max(w, 64)
   h = math.max(h, 64)
   
   return w, h
 end
 
--- Override mouse events
+
 function SlotElement:onMouseEnter()
   self._hovered = true
   SlotElement.__super.onMouseEnter(self)
@@ -90,20 +87,20 @@ function SlotElement:onMouseLeave()
 end
 
 function SlotElement:onMousePress(button, x, y)
-  if button == 1 then -- Left mouse button
+  if button == 1 then 
     self._pressed = true
   end
   SlotElement.__super.onMousePress(self, button, x, y)
 end
 
 function SlotElement:onMouseRelease(button, x, y)
-  if button == 1 then -- Left mouse button
+  if button == 1 then 
     self._pressed = false
   end
   SlotElement.__super.onMouseRelease(self, button, x, y)
 end
 
--- Override draw to render slot
+
 function SlotElement:draw(pass)
   if not self.visible then
     return
@@ -114,7 +111,7 @@ function SlotElement:draw(pass)
     return
   end
   
-  -- Draw slot background
+  
   if self.backgroundColor then
     local bg = self.backgroundColor
     local alpha = bg[4] * self.alpha
@@ -122,7 +119,7 @@ function SlotElement:draw(pass)
       self.borderRadius, bg[1], bg[2], bg[3], alpha)
   end
   
-  -- Draw slot border
+  
   local borderColor = self.borderColor
   if self._pressed then
     borderColor = self.pressBorderColor
@@ -136,20 +133,20 @@ function SlotElement:draw(pass)
       self.borderWidth, borderColor[1], borderColor[2], borderColor[3], borderAlpha)
   end
   
-  -- Draw icon
+  
   if self.iconPath then
     local iconAlpha = self.iconColor[4] * self.alpha
     Draw.icon(pass, rect.x, rect.y, rect.w, rect.h, self.iconPath,
       self.iconColor[1], self.iconColor[2], self.iconColor[3], iconAlpha)
   end
   
-  -- Draw children
+  
   for _, child in ipairs(self.children) do
     child:draw(pass)
   end
 end
 
--- Export the class
+
 Slot.SlotElement = SlotElement
 Slot.Create = function() return SlotElement:Create() end
 

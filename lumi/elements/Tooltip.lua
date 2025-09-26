@@ -1,6 +1,3 @@
--- Tooltip element for Lumi UI
--- Simple anchored popup with smart positioning
-
 local Tooltip = {}
 local Class = require('lumi.core.util.class')
 local Base = require('lumi.elements.Base')
@@ -8,24 +5,24 @@ local Draw = require('lumi.core.draw')
 local Theme = require('lumi.core.theme')
 local Text = require('lumi.core.util.text')
 
--- Tooltip class
+
 local TooltipElement = Base.BaseElement:extend()
 
 function TooltipElement:init()
   TooltipElement.__super.init(self)
   
-  -- Tooltip-specific properties
+  
   self.text = ""
   self.maxWidth = Theme.spacing.tooltipMaxWidth
   self.fontSize = Theme.typography.fontSizeSmall
   self.padding = Theme.spacing.tooltipPadding
   
-  -- Colors
+  
   self.backgroundColor = Theme.colors.tooltip
   self.textColor = Theme.colors.tooltipText
   self.borderColor = Theme.colors.border
   
-  -- Internal state
+  
   self._wrappedLines = {}
   self._textWidth = 0
   self._textHeight = 0
@@ -34,7 +31,7 @@ function TooltipElement:init()
   self._targetY = 0
 end
 
--- Tooltip setters
+
 function TooltipElement:setText(text)
   self.text = text or ""
   self:_updateTextLayout()
@@ -58,7 +55,7 @@ function TooltipElement:setPadding(padding)
   return self
 end
 
--- Color setters
+
 function TooltipElement:setBackgroundColor(r, g, b, a)
   if type(r) == "table" then
     self.backgroundColor = r
@@ -86,7 +83,7 @@ function TooltipElement:setBorderColor(r, g, b, a)
   return self
 end
 
--- Update text layout
+
 function TooltipElement:_updateTextLayout()
   if self.text == "" then
     self._wrappedLines = {}
@@ -95,7 +92,7 @@ function TooltipElement:_updateTextLayout()
     return
   end
   
-  -- Simple word wrapping
+  
   local words = {}
   for word in self.text:gmatch("%S+") do
     table.insert(words, word)
@@ -131,7 +128,7 @@ function TooltipElement:_updateTextLayout()
   
   self._wrappedLines = lines
   
-  -- Calculate dimensions
+  
   self._textWidth = 0
   for _, line in ipairs(lines) do
     local lineWidth = Text.estimateWidth(line)
@@ -141,7 +138,7 @@ function TooltipElement:_updateTextLayout()
   self._textHeight = #lines * self.fontSize * Theme.typography.lineHeight
 end
 
--- Set target element and position
+
 function TooltipElement:setTarget(element, x, y)
   self._targetElement = element
   self._targetX = x or 0
@@ -149,29 +146,29 @@ function TooltipElement:setTarget(element, x, y)
   return self
 end
 
--- Override preferred size
+
 function TooltipElement:preferredSize()
   local w = self._textWidth + self.padding * 2
   local h = self._textHeight + self.padding * 2
   return w, h
 end
 
--- Override layout to position tooltip
+
 function TooltipElement:layout(rect)
   local layoutRect = TooltipElement.__super.layout(self, rect)
   
-  -- Position tooltip relative to target
+  
   if self._targetElement then
     local targetRect = self._targetElement:getLayoutRect()
     if targetRect then
-      -- Position below target by default
+      
       local x = targetRect.x + (targetRect.w - layoutRect.w) / 2
       local y = targetRect.y + targetRect.h + 5
       
-      -- Adjust to stay on screen (simple bounds checking)
+      
       if x < 0 then
         x = 5
-      elseif x + layoutRect.w > 1920 then -- assuming 1920x1080 for now
+      elseif x + layoutRect.w > 1920 then 
         x = 1920 - layoutRect.w - 5
       end
       
@@ -187,7 +184,7 @@ function TooltipElement:layout(rect)
   return layoutRect
 end
 
--- Override draw to render tooltip
+
 function TooltipElement:draw(pass)
   if not self.visible then
     return
@@ -198,13 +195,13 @@ function TooltipElement:draw(pass)
     return
   end
   
-  -- Draw tooltip background
+  
   local bg = self.backgroundColor
   local alpha = bg[4] * self.alpha
   Draw.roundedRect(pass, rect.x, rect.y, rect.w, rect.h, 
     self.borderRadius, bg[1], bg[2], bg[3], alpha)
   
-  -- Draw tooltip border
+  
   if self.borderColor and self.borderWidth > 0 then
     local border = self.borderColor
     local borderAlpha = border[4] * self.alpha
@@ -212,7 +209,7 @@ function TooltipElement:draw(pass)
       self.borderWidth, border[1], border[2], border[3], borderAlpha)
   end
   
-  -- Draw tooltip text
+  
   if self.text ~= "" and #self._wrappedLines > 0 then
     local textColor = self.textColor
     local textAlpha = textColor[4] * self.alpha
@@ -220,7 +217,7 @@ function TooltipElement:draw(pass)
     local textX = rect.x + self.padding
     local textY = rect.y + self.padding
     
-    -- Draw each line
+    
     for i, line in ipairs(self._wrappedLines) do
       local lineY = textY + (i - 1) * self.fontSize * Theme.typography.lineHeight
       Draw.text(pass, line, textX, lineY, self.fontSize,
@@ -228,13 +225,13 @@ function TooltipElement:draw(pass)
     end
   end
   
-  -- Draw children
+  
   for _, child in ipairs(self.children) do
     child:draw(pass)
   end
 end
 
--- Export the class
+
 Tooltip.TooltipElement = TooltipElement
 Tooltip.Create = function() return TooltipElement:Create() end
 

@@ -1,13 +1,9 @@
--- Geometry utility functions for Lumi UI
-
 local Geom = {}
 
--- Rectangle structure: {x, y, w, h}
 function Geom.rect(x, y, w, h)
   return {x = x or 0, y = y or 0, w = w or 0, h = h or 0}
 end
 
--- Create rectangle from two points
 function Geom.rectFromPoints(x1, y1, x2, y2)
   return {
     x = math.min(x1, x2),
@@ -17,13 +13,11 @@ function Geom.rectFromPoints(x1, y1, x2, y2)
   }
 end
 
--- Check if point is inside rectangle
 function Geom.pointInRect(px, py, rect)
   return px >= rect.x and px <= rect.x + rect.w and
          py >= rect.y and py <= rect.y + rect.h
 end
 
--- Check if two rectangles intersect
 function Geom.rectsIntersect(rect1, rect2)
   return not (rect1.x + rect1.w < rect2.x or
               rect2.x + rect2.w < rect1.x or
@@ -31,7 +25,6 @@ function Geom.rectsIntersect(rect1, rect2)
               rect2.y + rect2.h < rect1.y)
 end
 
--- Get intersection of two rectangles
 function Geom.rectIntersection(rect1, rect2)
   local x1 = math.max(rect1.x, rect2.x)
   local y1 = math.max(rect1.y, rect2.y)
@@ -45,7 +38,6 @@ function Geom.rectIntersection(rect1, rect2)
   end
 end
 
--- Inset rectangle by given amounts
 function Geom.inset(rect, left, top, right, bottom)
   left = left or 0
   top = top or 0
@@ -60,43 +52,13 @@ function Geom.inset(rect, left, top, right, bottom)
   )
 end
 
--- Clamp value between min and max
 function Geom.clamp(value, min, max)
   return math.max(min, math.min(max, value))
 end
 
--- Clamp rectangle to bounds
 function Geom.clampRect(rect, bounds)
   local x = Geom.clamp(rect.x, bounds.x, bounds.x + bounds.w - rect.w)
   local y = Geom.clamp(rect.y, bounds.y, bounds.y + bounds.h - rect.h)
-  return Geom.rect(x, y, rect.w, rect.h)
-end
-
--- Anchor positions
-Geom.ANCHORS = {
-  ['top-left'] = {0, 0},
-  ['top'] = {0.5, 0},
-  ['top-center'] = {0, 0.5},  -- X=top, Y=center
-  ['top-right'] = {1, 0},
-  ['left'] = {0, 0.5},
-  ['center'] = {0.5, 0.5},
-  ['right'] = {1, 0.5},
-  ['bottom-left'] = {0, 1},
-  ['bottom'] = {0.5, 1},
-  ['bottom-right'] = {1, 1}
-}
-
--- Apply anchor to rectangle
-function Geom.applyAnchor(rect, anchor, parentRect)
-  local anchorData = Geom.ANCHORS[anchor]
-  if not anchorData then
-    anchorData = Geom.ANCHORS['top-left']
-  end
-  
-  local ax, ay = anchorData[1], anchorData[2]
-  local x = parentRect.x + (parentRect.w - rect.w) * ax
-  local y = parentRect.y + (parentRect.h - rect.h) * ay
-  
   return Geom.rect(x, y, rect.w, rect.h)
 end
 
