@@ -397,6 +397,17 @@ function InputElement:draw(pass)
   end
 end
 
+-- Input-specific event callbacks
+function InputElement:onChange(callback)
+  self.onChange = callback
+  return self
+end
+
+function InputElement:onSubmit(callback)
+  self.onSubmit = callback
+  return self
+end
+
 -- Export the class
 Input.InputElement = InputElement
 Input.Create = function() return InputElement:Create() end

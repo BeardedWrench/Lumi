@@ -7,6 +7,7 @@ local Base = require('lumi.elements.Base')
 local Layout = require('lumi.core.layout')
 local Measure = require('lumi.core.measure')
 local Theme = require('lumi.core.theme')
+local LayoutSystem = require('lumi.core.layout_system')
 
 -- Stack class
 local StackElement = Base.BaseElement:extend()
@@ -53,11 +54,11 @@ end
 
 -- Override preferred size to account for children
 function StackElement:preferredSize()
-  local w, h = StackElement.__super.preferredSize(self)
-  
   if #self.children == 0 then
-    return w, h
+    return StackElement.__super.preferredSize(self)
   end
+  
+  local w, h = 0, 0
   
   if self.direction == Layout.DIRECTION.ROW then
     -- Calculate width and height for row direction
@@ -74,8 +75,8 @@ function StackElement:preferredSize()
       end
     end
     
-    w = math.max(w, totalWidth)
-    h = math.max(h, maxHeight)
+    w = totalWidth
+    h = maxHeight
   else
     -- Calculate width and height for column direction
     local maxWidth = 0
@@ -91,36 +92,15 @@ function StackElement:preferredSize()
       end
     end
     
-    w = math.max(w, maxWidth)
-    h = math.max(h, totalHeight)
+    w = maxWidth
+    h = totalHeight
   end
   
   return w, h
 end
 
--- Override layout to arrange children
-function StackElement:layout(rect)
-  local layoutRect = StackElement.__super.layout(self, rect)
-  
-  if #self.children == 0 then
-    return layoutRect
-  end
-  
-  -- Get content area (minus padding)
-  local contentRect = self:getContentRect()
-  if not contentRect then
-    return layoutRect
-  end
-  
-  -- Arrange children
-  if self.wrap then
-    self:_layoutWrapped(contentRect)
-  else
-    self:_layoutSingleLine(contentRect)
-  end
-  
-  return layoutRect
-end
+-- Stack layout is handled by the main layout system
+-- No need to override layout method
 
 -- Layout children in a single line
 function StackElement:_layoutSingleLine(contentRect)
@@ -144,39 +124,29 @@ function StackElement:_layoutSingleLine(contentRect)
     self.direction == Layout.DIRECTION.ROW and contentRect.h or contentRect.w, 
     self.direction, self.align)
   
-  -- Position children
-  for i, child in ipairs(self.children) do
-    local size = sizes[i]
-    local position = positions[i]
-    local alignment = alignments[i]
-    
-    local childRect
-    if self.direction == Layout.DIRECTION.ROW then
-      childRect = {
-        x = contentRect.x + position,
-        y = contentRect.y + alignment,
-        w = size,
-        h = sizes[i]
-      }
-    else
-      childRect = {
-        x = contentRect.x + alignment,
-        y = contentRect.y + position,
-        w = sizes[i],
-        h = size
-      }
+    -- Position children
+    for i, child in ipairs(self.children) do
+      local size = sizes[i]
+      local position = positions[i]
+      local alignment = alignments[i]
+      
+      -- Set child position relative to content area (not absolute)
+      if self.direction == Layout.DIRECTION.ROW then
+        child:setPos(position, alignment)
+        child:setSize(size, sizes[i])
+      else
+        child:setPos(alignment, position)
+        child:setSize(sizes[i], size)
+      end
+      
+      -- Apply full width/height constraints
+      if child.fullWidth then
+        child:setSize(contentRect.w, child.h)
+      end
+      if child.fullHeight then
+        child:setSize(child.w, contentRect.h)
+      end
     end
-    
-    -- Apply full width/height constraints
-    if child.fullWidth then
-      childRect.w = contentRect.w
-    end
-    if child.fullHeight then
-      childRect.h = contentRect.h
-    end
-    
-    child:layout(childRect)
-  end
 end
 
 -- Layout children with wrapping
@@ -244,32 +214,22 @@ function StackElement:_layoutWrapped(contentRect)
       local position = linePositions[i]
       local alignment = lineAlignments[i]
       
-      local childRect
+      -- Set child position relative to content area (not absolute)
       if self.direction == Layout.DIRECTION.ROW then
-        childRect = {
-          x = contentRect.x + position,
-          y = currentY + alignment,
-          w = size,
-          h = lineSizes[i]
-        }
+        child:setPos(position, currentY - contentRect.y + alignment)
+        child:setSize(size, lineSizes[i])
       else
-        childRect = {
-          x = contentRect.x + alignment,
-          y = currentY + position,
-          w = lineSizes[i],
-          h = size
-        }
+        child:setPos(alignment, currentY - contentRect.y + position)
+        child:setSize(lineSizes[i], size)
       end
       
       -- Apply full width/height constraints
       if child.fullWidth then
-        childRect.w = contentRect.w
+        child:setSize(contentRect.w, child.h)
       end
       if child.fullHeight then
-        childRect.h = contentRect.h
+        child:setSize(child.w, contentRect.h)
       end
-      
-      child:layout(childRect)
     end
     
     currentY = currentY + lineHeight

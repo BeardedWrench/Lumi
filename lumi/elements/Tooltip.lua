@@ -112,7 +112,7 @@ function TooltipElement:_updateTextLayout()
       testLine = word
     end
     
-    if Text.estimateWidth(testLine, self.fontSize) <= self.maxWidth then
+    if Text.estimateWidth(testLine) <= self.maxWidth then
       currentLine = testLine
     else
       if currentLine ~= "" then
@@ -134,7 +134,7 @@ function TooltipElement:_updateTextLayout()
   -- Calculate dimensions
   self._textWidth = 0
   for _, line in ipairs(lines) do
-    local lineWidth = Text.estimateWidth(line, self.fontSize)
+    local lineWidth = Text.estimateWidth(line)
     self._textWidth = math.max(self._textWidth, lineWidth)
   end
   

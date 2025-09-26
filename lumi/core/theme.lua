@@ -52,11 +52,10 @@ Theme.spacing = {
 
 -- Typography
 Theme.typography = {
-  fontSize = 14,
-  fontSizeSmall = 12,
-  fontSizeLarge = 16,
-  lineHeight = 1.2,
-  fontFamily = "fonts/lucon.ttf"
+  fontSize = 16,        -- Base font size (CSS standard)
+  fontSizeSmall = 12,   -- Smaller than base
+  fontSizeLarge = 18,   -- Larger than base
+  lineHeight = 1.2
 }
 
 -- Animation timing

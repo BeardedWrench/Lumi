@@ -7,12 +7,17 @@ local Base = require('lumi.elements.Base')
 local Draw = require('lumi.core.draw')
 local Theme = require('lumi.core.theme')
 local Input = require('lumi.core.input')
+local Label = require('lumi.elements.Label')
+local Box = require('lumi.elements.foundation.Box')
 
 -- Button class
-local ButtonElement = Base.BaseElement:extend()
+local ButtonElement = Box.BoxElement:extend()
 
 function ButtonElement:init()
   ButtonElement.__super.init(self)
+  
+  -- Element identification
+  self.className = "ButtonElement"
   
   -- Button-specific properties
   self.text = "Button"
@@ -30,19 +35,72 @@ function ButtonElement:init()
   self.pressTextColor = Theme.colors.text
   self.disabledTextColor = Theme.colors.textDisabled
   
+  -- Layout properties
+  self.padding = {Theme.spacing.padding, Theme.spacing.padding, Theme.spacing.padding, Theme.spacing.padding} -- top, right, bottom, left
+  
   -- Internal state
   self._state = 'idle' -- idle, hover, press, disabled
   self._clicked = false
+  
+  -- Create label for text
+  self._textLabel = nil
 end
 
 -- Button setters
 function ButtonElement:setText(text)
   self.text = text or "Button"
+  
+  -- Set button background colors
+  self:setBackgroundColor(self.idleColor[1], self.idleColor[2], self.idleColor[3], self.idleColor[4])
+  if self.borderColor then
+    self:setBorderColor(self.borderColor[1], self.borderColor[2], self.borderColor[3], self.borderColor[4])
+  end
+  self:setBorderWidth(self.borderWidth)
+  self:setBorderRadius(self.borderRadius)
+  
+  -- Create or update text label
+  if not self._textLabel then
+    self._textLabel = Label:Create()
+      :setText(self.text)
+      :setFontSize(self.fontSize)
+      :setTextColor(self.idleTextColor[1], self.idleTextColor[2], self.idleTextColor[3], self.idleTextColor[4])
+      :setBackgroundColor(0, 0, 0, 0)  -- Transparent background
+      :setBorderWidth(0)  -- No border
+      :setAnchors('center', 'center')  -- Use dual anchor system
+      :setPos(0, 0)
+    self:addChild(self._textLabel)
+  else
+    self._textLabel:setText(self.text)
+  end
+  
+  -- Auto-size button to fit text + padding
+  local TextUtil = require('lumi.core.util.text')
+  local textWidth = TextUtil.estimateWidth(self.text)
+  local textHeight = self.fontSize
+  
+  -- Add padding to text dimensions (left + right, top + bottom)
+  local buttonWidth = textWidth + self.padding[4] + self.padding[2]  -- left + right
+  local buttonHeight = textHeight + self.padding[1] + self.padding[3]  -- top + bottom
+  
+  
+  -- Only auto-size if no explicit size was set
+  if not self._explicitWidth then
+    self.w = buttonWidth
+  end
+  if not self._explicitHeight then
+    self.h = buttonHeight
+  end
+  
   return self
 end
 
 function ButtonElement:setFontSize(size)
   self.fontSize = size or Theme.typography.fontSize
+  
+  if self._textLabel then
+    self._textLabel:setFontSize(self.fontSize)
+  end
+  
   return self
 end
 
@@ -63,6 +121,10 @@ function ButtonElement:setIdleColor(r, g, b, a)
   else
     self.idleColor = {r or 0.2, g or 0.2, b or 0.2, a or 1}
   end
+  
+  -- Update button's own background
+  self:setBackgroundColor(self.idleColor[1], self.idleColor[2], self.idleColor[3], self.idleColor[4])
+  
   return self
 end
 
@@ -94,6 +156,20 @@ function ButtonElement:setDisabledColor(r, g, b, a)
 end
 
 -- Text color setters
+function ButtonElement:setTextColor(r, g, b, a)
+  -- Set all text colors to the same value for simplicity
+  self:setIdleTextColor(r, g, b, a)
+  self:setHoverTextColor(r, g, b, a)
+  self:setPressTextColor(r, g, b, a)
+  
+  -- Update label color
+  if self._textLabel then
+    self._textLabel:setTextColor(r, g, b, a)
+  end
+  
+  return self
+end
+
 function ButtonElement:setIdleTextColor(r, g, b, a)
   if type(r) == "table" then
     self.idleTextColor = r
@@ -128,6 +204,32 @@ function ButtonElement:setDisabledTextColor(r, g, b, a)
     self.disabledTextColor = {r or 0.4, g or 0.4, b or 0.4, a or 1}
   end
   return self
+end
+
+function ButtonElement:setPadding(padding)
+  if type(padding) == "number" then
+    -- Single number: apply to all sides
+    self.padding = {padding, padding, padding, padding}
+  elseif type(padding) == "table" then
+    -- Table: {top, right, bottom, left}
+    self.padding = padding
+  else
+    -- Default padding
+    self.padding = {Theme.spacing.padding, Theme.spacing.padding, Theme.spacing.padding, Theme.spacing.padding}
+  end
+  
+  -- Recalculate size if we have text
+  if self.text and self.text ~= "" then
+    self:setText(self.text) -- This will trigger auto-sizing
+  end
+  return self
+end
+
+-- Override setSize to track explicit sizing
+function ButtonElement:setSize(w, h)
+  self._explicitWidth = w ~= nil
+  self._explicitHeight = h ~= nil
+  return ButtonElement.__super.setSize(self, w, h)
 end
 
 -- Override preferred size to account for text
@@ -186,58 +288,53 @@ function ButtonElement:onMouseRelease(button, x, y)
   ButtonElement.__super.onMouseRelease(self, button, x, y)
 end
 
--- Override draw to render button
+-- Override draw to use atomic elements
 function ButtonElement:draw(pass)
   if not self.visible then
     return
   end
   
-  local rect = self:getLayoutRect()
-  if not rect then
-    return
-  end
-  
-  -- Get current state colors
-  local bgColor, textColor
-  
+  -- Update button background color based on state
+  local bgColor
   if self.disabled then
     bgColor = self.disabledColor
-    textColor = self.disabledTextColor
   elseif self._state == 'hover' then
     bgColor = self.hoverColor
-    textColor = self.hoverTextColor
   elseif self._state == 'press' then
     bgColor = self.pressColor
-    textColor = self.pressTextColor
   else
     bgColor = self.idleColor
-    textColor = self.idleTextColor
   end
   
-  -- Draw button background
-  local alpha = bgColor[4] * self.alpha
-  Draw.roundedRect(pass, rect.x, rect.y, rect.w, rect.h, 
-    self.borderRadius, bgColor[1], bgColor[2], bgColor[3], alpha)
+  self:setBackgroundColor(bgColor[1], bgColor[2], bgColor[3], bgColor[4])
   
-  -- Draw button border
-  if self.borderColor and self.borderWidth > 0 then
-    local border = self.borderColor
-    local borderAlpha = border[4] * self.alpha
-    Draw.rectBorder(pass, rect.x, rect.y, rect.w, rect.h, 
-      self.borderWidth, border[1], border[2], border[3], borderAlpha)
-  end
-  
-  -- Draw button text
-  if self.text ~= "" then
-    local textAlpha = textColor[4] * self.alpha
-    local textX = rect.x + rect.w / 2
-    local textY = rect.y + (rect.h - self.fontSize) / 2
+  -- Update text label color based on state
+  if self._textLabel then
+    local textColor
+    if self.disabled then
+      textColor = self.disabledTextColor
+    elseif self._state == 'hover' then
+      textColor = self.hoverTextColor
+    elseif self._state == 'press' then
+      textColor = self.pressTextColor
+    else
+      textColor = self.idleTextColor
+    end
     
-    Draw.text(pass, self.text, textX, textY, self.fontSize,
-      textColor[1], textColor[2], textColor[3], textAlpha, 'center')
+    self._textLabel:setTextColor(textColor[1], textColor[2], textColor[3], textColor[4])
   end
   
-  -- Draw children
+  -- Draw debug rectangle
+  local layoutRect = self:getLayoutRect()
+  if layoutRect then
+    local Draw = require('lumi.core.draw')
+    Draw.rect(pass, layoutRect.x, layoutRect.y, layoutRect.w, layoutRect.h, 0, 1, 0, 1)  -- BRIGHT GREEN
+  end
+  
+  -- Draw button background (from Box parent)
+  ButtonElement.__super.draw(self, pass)
+  
+  -- Draw children (text label)
   for _, child in ipairs(self.children) do
     child:draw(pass)
   end

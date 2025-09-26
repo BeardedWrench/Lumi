@@ -13,8 +13,7 @@ function Draw.setupOrtho(pass, width, height)
   pass:setProjection(1, ortho)
   pass:setViewPose(1, 0, 0, 0, 0, 0, 0, 1)
   
-  -- Disable depth test for UI
-  pass:setDepthTest(false)
+  -- Note: Depth testing is handled by the render pass setup
 end
 
 -- Draw a filled rectangle
@@ -25,7 +24,7 @@ function Draw.rect(pass, x, y, w, h, r, g, b, a)
   a = a or 1
   
   pass:setColor(r, g, b, a)
-  pass:plane('fill', x + w/2, y + h/2, 0, w, h, 0, 0, 0, 1)
+  pass:plane(x + w/2, y + h/2, 0, w, h, 0, 0, 0, 1)
 end
 
 -- Draw a rectangle border
@@ -71,7 +70,7 @@ function Draw.roundedRect(pass, x, y, w, h, radius, r, g, b, a)
   Draw.rect(pass, x, y, w, h, r, g, b, a)
 end
 
--- Draw text with proper font setup
+-- Draw text using LÖVR's built-in alignment
 function Draw.text(pass, text, x, y, fontSize, r, g, b, a, align)
   fontSize = fontSize or Theme.typography.fontSize
   r = r or 1
@@ -81,34 +80,17 @@ function Draw.text(pass, text, x, y, fontSize, r, g, b, a, align)
   align = align or 'left'
   
   pass:setColor(r, g, b, a)
+
   
-  -- Set font if available
-  if lovr.graphics.getFont then
-    local font = lovr.graphics.getFont()
-    if font then
-      pass:setFont(font)
-    end
-  end
-  
-  -- Calculate alignment offset
-  local offsetX = 0
+  -- Use LÖVR's built-in alignment
+  local halign = 'left'
   if align == 'center' then
-    -- Estimate text width for centering
-    local textWidth = 0
-    for i = 1, #text do
-      textWidth = textWidth + fontSize * 0.6 -- rough estimate
-    end
-    offsetX = -textWidth / 2
+    halign = 'center'
   elseif align == 'right' then
-    -- Estimate text width for right alignment
-    local textWidth = 0
-    for i = 1, #text do
-      textWidth = textWidth + fontSize * 0.6 -- rough estimate
-    end
-    offsetX = -textWidth
+    halign = 'right'
   end
   
-  pass:text(text, x + offsetX, y, 0, fontSize)
+  pass:text(text, x, y, 0, fontSize, 0, 0, 0, 0, 0, halign, 'middle')
 end
 
 -- Draw icon/image
@@ -125,7 +107,7 @@ function Draw.icon(pass, x, y, w, h, iconPath, r, g, b, a)
     local success, texture = pcall(lovr.graphics.newTexture, iconPath)
     if success and texture then
       pass:setMaterial(texture)
-      pass:plane('fill', x + w/2, y + h/2, 0, w, h, 0, 0, 0, 1)
+      pass:plane(x + w/2, y + h/2, 0, w, h, 0, 0, 0, 1)
       pass:setMaterial()
     else
       -- Fallback: draw colored rectangle

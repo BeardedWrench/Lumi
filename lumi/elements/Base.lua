@@ -5,7 +5,7 @@ local Base = {}
 local Class = require('lumi.core.util.class')
 local Geom = require('lumi.core.util.geom')
 local Theme = require('lumi.core.theme')
-local Context = require('lumi.core.context')
+local LayoutSystem = require('lumi.core.layout_system')
 
 -- Base element class
 local BaseElement = Class:extend()
@@ -22,7 +22,8 @@ function BaseElement:init()
   self.maxHeight = math.huge
   
   -- Layout properties
-  self.anchor = 'top-left'
+  self.anchorX = 'left'   -- left, center, right
+  self.anchorY = 'top'    -- top, center, bottom
   self.margin = {0, 0, 0, 0} -- top, right, bottom, left
   self.padding = {0, 0, 0, 0} -- top, right, bottom, left
   
@@ -86,6 +87,16 @@ function BaseElement:setSize(w, h)
   return self
 end
 
+function BaseElement:setWidth(w)
+  self.w = w or 0
+  return self
+end
+
+function BaseElement:setHeight(h)
+  self.h = h or 0
+  return self
+end
+
 function BaseElement:setMinSize(w, h)
   self.minWidth = w or 0
   self.minHeight = h or 0
@@ -99,8 +110,18 @@ function BaseElement:setMaxSize(w, h)
 end
 
 -- Layout setters
-function BaseElement:setAnchor(anchor)
-  self.anchor = anchor or 'top-left'
+
+-- Set dual anchors for X and Y separately
+function BaseElement:setAnchors(anchorX, anchorY)
+  self.anchorX = anchorX or 'left'
+  self.anchorY = anchorY or 'top'
+  
+  -- Update combined anchor
+  self.anchor = self.anchorY .. '-' .. self.anchorX
+  if self.anchorX == 'center' and self.anchorY == 'center' then
+    self.anchor = 'center'
+  end
+  
   return self
 end
 
@@ -313,12 +334,17 @@ function BaseElement:preferredSize()
 end
 
 function BaseElement:layout(rect)
-  self._layoutRect = rect
-  return rect
+  -- Use the new layout system
+  return LayoutSystem.layoutElement(self, rect)
 end
 
 function BaseElement:getLayoutRect()
   return self._layoutRect
+end
+
+-- Layout children using the new layout system
+function BaseElement:layoutChildren()
+  LayoutSystem.layoutChildren(self)
 end
 
 -- Hit testing
@@ -403,14 +429,9 @@ function BaseElement:getAbsolutePos()
   return x, y
 end
 
--- Get content rectangle (minus padding)
+-- Get content rectangle (minus padding) using the new layout system
 function BaseElement:getContentRect()
-  local rect = self:getLayoutRect()
-  if not rect then
-    return nil
-  end
-  
-  return Geom.inset(rect, self.padding[4], self.padding[1], self.padding[2], self.padding[3])
+  return LayoutSystem.getContentArea(self)
 end
 
 -- Check if element is hovered

@@ -7,6 +7,8 @@ local Input = require('lumi.core.input')
 local Draw = require('lumi.core.draw')
 local Theme = require('lumi.core.theme')
 local Geom = require('lumi.core.util.geom')
+local Debug = require('lumi.core.debug')
+local LayoutSystem = require('lumi.core.layout_system')
 
 -- UI Context class
 local UIContext = Class:extend()
@@ -17,6 +19,10 @@ function UIContext:init()
   self.font = nil
   self.tooltips = {}
   self.zLayers = {}
+  self.scale = 1.0
+  self.debug = Debug
+  self.baseWidth = 800  -- Smaller base resolution for better scaling
+  self.baseHeight = 600
   
   -- Initialize z-layers
   for name, z in pairs(Theme.zLayers) do
@@ -25,6 +31,34 @@ function UIContext:init()
   
   -- Initialize input
   Input.init()
+  
+  -- Set up input element finder
+  Input.findElementAt = function(x, y)
+    return self:findElementAt(x, y)
+  end
+end
+
+-- Set UI scale
+function UIContext:setScale(scale)
+  self.scale = scale or 1.0
+end
+
+-- Get UI scale
+function UIContext:getScale()
+  return self.scale
+end
+
+-- Set base resolution for scaling
+function UIContext:setBaseResolution(width, height)
+  self.baseWidth = width or 800
+  self.baseHeight = height or 600
+end
+
+-- Calculate scale based on window size
+function UIContext:calculateScale(windowWidth, windowHeight)
+  local scaleX = windowWidth / self.baseWidth
+  local scaleY = windowHeight / self.baseHeight
+  return math.min(scaleX, scaleY) -- Use the smaller scale to maintain aspect ratio
 end
 
 -- Set the root element
@@ -63,28 +97,40 @@ end
 
 -- Draw UI (called from UI.draw)
 function UIContext:draw(pass, width, height)
-  -- Set up orthographic projection
-  Draw.setupOrtho(pass, width, height)
+  -- Calculate scale based on window size
+  local scale = self:calculateScale(width, height)
+  self.scale = scale
+  
+  -- Set up orthographic projection with proper scaling and correct Y-axis
+  local scaledWidth = width / scale
+  local scaledHeight = height / scale
+  -- Fix Y-axis: use (0, 0, width, height, -1, 1) for normal Y-axis (0 at top)
+  local ortho = lovr.math.mat4():orthographic(0, scaledWidth, 0, scaledHeight, -1, 1)
+  
+  pass:setProjection(1, ortho)
+  pass:setViewPose(1, 0, 0, 0, 0, 0, 0, 1)
   
   -- Set font
   if self.font then
     pass:setFont(self.font)
   end
   
-  -- Draw elements by z-layer
-  for z = 0, 400 do
-    local layer = self.zLayers[z]
-    if layer then
-      for _, element in ipairs(layer) do
-        if element.visible ~= false then
-          element:draw(pass)
-        end
-      end
-    end
+  -- Layout root element if it exists using the new layout system
+  if self.root then
+    local screenRect = {x = 0, y = 0, w = scaledWidth, h = scaledHeight}
+    LayoutSystem.layoutTree(self.root, screenRect)
+    
+    -- Draw root element and its children
+    self.root:draw(pass)
   end
   
   -- Draw tooltips last
   self:drawTooltips(pass)
+  
+  -- Draw debug info if enabled
+  if self.debug then
+    self.debug:debugUI(pass, self.root)
+  end
 end
 
 -- Add element to z-layer
@@ -113,6 +159,10 @@ end
 function UIContext:updateTooltips(dt)
   local hover = Input.getHover()
   local mouseX, mouseY = Input.getMousePosition()
+  
+  -- Scale mouse coordinates
+  mouseX = mouseX / self.scale
+  mouseY = mouseY / self.scale
   
   -- Update existing tooltips
   for i = #self.tooltips, 1, -1 do
@@ -211,9 +261,12 @@ function UIContext:drawTooltips(pass)
       local x = tooltip.x
       local y = tooltip.y
       
-      -- Simple screen bounds checking (assuming 1920x1080 for now)
-      if x + tooltipWidth > 1920 then
-        x = 1920 - tooltipWidth - 10
+      -- Get scaled screen dimensions
+      local screenWidth = self.baseWidth
+      local screenHeight = self.baseHeight
+      
+      if x + tooltipWidth > screenWidth then
+        x = screenWidth - tooltipWidth - 10
       end
       if y - tooltipHeight < 0 then
         y = tooltipHeight + 10
@@ -230,6 +283,10 @@ function UIContext:findElementAt(x, y)
   if not self.root then
     return nil
   end
+  
+  -- Scale coordinates
+  x = x / self.scale
+  y = y / self.scale
   
   return self.root:hitTest(x, y)
 end

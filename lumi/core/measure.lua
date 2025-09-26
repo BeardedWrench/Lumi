@@ -12,14 +12,14 @@ function Measure.text(text, fontSize, maxWidth, wrapMode)
   wrapMode = wrapMode or 'none'
   
   if wrapMode == 'none' then
-    local width = Text.estimateWidth(text, fontSize)
+    local width = Text.estimateWidth(text)
     local height = fontSize * Theme.typography.lineHeight
     return width, height
   else
-    local lines = Text.wrap(text, maxWidth, fontSize, wrapMode)
+    local lines = Text.wrap(text, maxWidth, wrapMode)
     local maxLineWidth = 0
     for _, line in ipairs(lines) do
-      local lineWidth = Text.estimateWidth(line, fontSize)
+      local lineWidth = Text.estimateWidth(line)
       maxLineWidth = math.max(maxLineWidth, lineWidth)
     end
     local height = #lines * fontSize * Theme.typography.lineHeight

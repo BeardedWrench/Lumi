@@ -5,12 +5,14 @@ A modular, screen-space UI library for LÖVR with a clean, builder-pattern API i
 ## Features
 
 - **Screen-space rendering** with orthographic projection
+- **Automatic scaling** - UI adapts to different window sizes
 - **Builder pattern** with chainable setters
 - **Flexbox-like layout** with Stack component
 - **Comprehensive elements**: Panel, Label, Button, Input, Slot, Tooltip
 - **Event handling**: mouse, keyboard, focus, hover
 - **Theming system** with customizable colors and spacing
 - **Tooltip support** with smart positioning
+- **Draggable panels** with close buttons
 - **No external dependencies** (pure Lua)
 
 ## Quick Start
@@ -56,6 +58,23 @@ function lovr.draw(pass)
 end
 ```
 
+## Scaling and Responsive Design
+
+Lumi UI automatically scales to different window sizes while maintaining aspect ratio:
+
+```lua
+-- Set base resolution (default: 1920x1080)
+UI.setBaseResolution(1920, 1080)
+
+-- Set manual scale (optional)
+UI.setScale(1.5)
+
+-- Get current scale
+local scale = UI.getScale()
+```
+
+The UI uses a base resolution of 1920x1080 and automatically scales down for smaller windows while maintaining the aspect ratio.
+
 ## API Reference
 
 ### Core API
@@ -66,6 +85,9 @@ end
 - `UI.update(dt)` - Update UI (call from lovr.update)
 - `UI.draw(pass, width, height)` - Draw UI (call from lovr.draw)
 - `UI.setFont(font)` - Set default font
+- `UI.setScale(scale)` - Set UI scale
+- `UI.getScale()` - Get current UI scale
+- `UI.setBaseResolution(width, height)` - Set base resolution for scaling
 - `UI.theme` - Access theme configuration
 
 ### Elements

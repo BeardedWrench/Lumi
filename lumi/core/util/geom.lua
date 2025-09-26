@@ -76,6 +76,7 @@ end
 Geom.ANCHORS = {
   ['top-left'] = {0, 0},
   ['top'] = {0.5, 0},
+  ['top-center'] = {0, 0.5},  -- X=top, Y=center
   ['top-right'] = {1, 0},
   ['left'] = {0, 0.5},
   ['center'] = {0.5, 0.5},

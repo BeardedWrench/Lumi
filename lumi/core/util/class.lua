@@ -18,6 +18,9 @@ function Class:extend(child)
     return instance
   end
   
+  -- Make extend method available on extended classes
+  child_class.extend = Class.extend
+  
   return child_class
 end
 
