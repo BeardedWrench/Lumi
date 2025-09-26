@@ -1,6 +1,10 @@
 package.path = package.path .. ";./?.lua;./?/init.lua"
 
 local UI = require('lumi')
+local Debug = require('lumi.core.debug')
+local Input = require('lumi.core.input')
+
+
 
 local Panel = UI.Panel
 local Label = UI.Label
@@ -14,6 +18,7 @@ function createMinimalUI()
     :setSize(300, 200)
     :setAnchors('center', 'center')
     :setClosable(true)
+    :setDraggable(true)
   
   -- Set the close callback after creating the panel
   panel:onClose(function()
@@ -60,10 +65,10 @@ function lovr.draw(pass)
 end
 
 function lovr.keypressed(key)
+  print("Key pressed: " .. key)
   if key == 'escape' then
     lovr.event.quit()
   elseif key == 'd' or key == 'D' then
-    local Debug = require('lumi.core.debug')
     Debug.toggle()
     if Debug.getState().enabled then
       Debug.showAll()
@@ -71,14 +76,20 @@ function lovr.keypressed(key)
       print("Debug mode disabled")
     end
   elseif key == 'i' or key == 'I' then
-    local Debug = require('lumi.core.debug')
-    local UI = require('lumi')
     local context = UI.getContext()
     local root = context:getRoot()
     if root then
       print("=== ELEMENT INFORMATION ===")
       Debug.logElementInfo(root)
       print("=== END ELEMENT INFORMATION ===")
+    end
+  elseif key == 'm' or key == 'M' then
+    print("Testing mouse position...")
+    if lovr.mouse then
+      local x, y = lovr.mouse.getPosition()
+      print("Current mouse position: " .. x .. ", " .. y)
+    else
+      print("lovr.mouse is not available")
     end
   end
 end
@@ -93,8 +104,7 @@ end
 
 function lovr.mousemoved(x, y, dx, dy)
   -- Forward mouse movement to UI system
-  local Input = require('lumi.core.input')
-  Input.updateMousePosition(x, y)
+  UI.mousemoved(x, y)
 end
 
 function lovr.textinput(text)

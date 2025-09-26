@@ -1,6 +1,6 @@
-local LayoutSystem = {}
+local LayoutEngine = {}
 
-function LayoutSystem.layoutElement(element, parentRect, screenRect)
+function LayoutEngine.layoutElement(element, parentRect, screenRect)
   if not element or not element.visible then
     return nil
   end
@@ -22,13 +22,7 @@ function LayoutSystem.layoutElement(element, parentRect, screenRect)
   
   local x, y = element.x or 0, element.y or 0
   if parentRect then
-    if parentRect == screenRect then
-      x, y = LayoutSystem.applyAnchor(x, y, elementWidth, elementHeight, parentRect, element)
-    else
-      x, y = LayoutSystem.applyAnchor(x, y, elementWidth, elementHeight, parentRect, element)
-    end
-  else
-    
+    x, y = LayoutEngine.applyAnchor(x, y, elementWidth, elementHeight, parentRect, element)
   end
   
   local layoutRect = {
@@ -38,11 +32,17 @@ function LayoutSystem.layoutElement(element, parentRect, screenRect)
     h = elementHeight
   }
   
+  -- Update the element's actual position and size
+  element.x = x
+  element.y = y
+  element.w = elementWidth
+  element.h = elementHeight
+  
   element._layoutRect = layoutRect
   return layoutRect
 end
 
-function LayoutSystem.applyAnchor(x, y, elementWidth, elementHeight, parentRect, element)
+function LayoutEngine.applyAnchor(x, y, elementWidth, elementHeight, parentRect, element)
   local parentX, parentY = parentRect.x, parentRect.y
   local parentWidth, parentHeight = parentRect.w, parentRect.h
   local anchorX = element.anchorX or 'left'
@@ -68,7 +68,7 @@ function LayoutSystem.applyAnchor(x, y, elementWidth, elementHeight, parentRect,
   return finalX, finalY
 end
 
-function LayoutSystem.getContentArea(element)
+function LayoutEngine.getContentArea(element)
   local layoutRect = element._layoutRect
   if not layoutRect then
     return nil
@@ -85,12 +85,12 @@ function LayoutSystem.getContentArea(element)
   }
 end
 
-function LayoutSystem.layoutChildren(element, screenRect)
+function LayoutEngine.layoutChildren(element, screenRect)
   if not element.children or #element.children == 0 then
     return
   end
   
-  local contentArea = LayoutSystem.getContentArea(element)
+  local contentArea = LayoutEngine.getContentArea(element)
   if not contentArea then
     return
   end
@@ -99,28 +99,41 @@ function LayoutSystem.layoutChildren(element, screenRect)
     if element.layout then
       element:layout(contentArea)
     end
-    LayoutSystem.layoutStack(element, contentArea)
+    LayoutEngine.layoutStack(element, contentArea)
+    -- Don't process Stack children with regular layout engine - Stack handles its own children
+    return
   else
     for _, child in ipairs(element.children) do
-      if element.className == "PanelElement" and child == element.titlebar then
-        LayoutSystem.layoutChildren(child, screenRect)
+      if child.className == "StackElement" then
+        -- Handle Stack elements specially regardless of parent
+        if child.layout then
+          child:layout(contentArea)
+        end
+        LayoutEngine.layoutStack(child, contentArea)
+        -- Don't call layoutChildren for Stacks - they handle their own children
       else
-        LayoutSystem.layoutElement(child, contentArea, screenRect)
-        LayoutSystem.layoutChildren(child, screenRect) 
+        -- Skip children that are already laid out by their parent (e.g., Stack children)
+        if not child._stackLaidOut then
+          print("DEBUG layoutChildren: Processing child", child.className, "not laid out (_stackLaidOut =", child._stackLaidOut, ")")
+          LayoutEngine.layoutElement(child, contentArea, screenRect)
+          LayoutEngine.layoutChildren(child, screenRect) 
+        else
+          print("DEBUG layoutChildren: Skipping child", child.className, "already laid out (_stackLaidOut =", child._stackLaidOut, ")")
+        end
       end
     end
   end
 end
 
-function LayoutSystem.layoutTree(rootElement, screenRect)
+function LayoutEngine.layoutTree(rootElement, screenRect)
   if not rootElement then
     return
   end
-  LayoutSystem.layoutElement(rootElement, screenRect, screenRect)
-  LayoutSystem.layoutChildren(rootElement, screenRect)
+  LayoutEngine.layoutElement(rootElement, screenRect, screenRect)
+  LayoutEngine.layoutChildren(rootElement, screenRect)
 end
 
-function LayoutSystem.layoutStack(stackElement, contentArea)
+function LayoutEngine.layoutStack(stackElement, contentArea)
   if not stackElement.children or #stackElement.children == 0 then
     return
   end
@@ -204,14 +217,14 @@ function LayoutSystem.layoutStack(stackElement, contentArea)
     child.w = childW
     child.h = childH
     
-    LayoutSystem.layoutElement(child, contentArea)
-    LayoutSystem.layoutChildren(child)
+    -- Don't call layoutElement or layoutChildren here - Stack handles its own children
+    -- LayoutEngine.layoutElement(child, contentArea)
+    -- LayoutEngine.layoutChildren(child)
     
     currentPos = currentPos + childSize.main + gap
   end
 end
 
-LayoutSystem.LayoutSystem = LayoutSystem
-LayoutSystem.Create = function() return LayoutSystem end
+LayoutEngine.Create = function() return LayoutEngine end
 
-return LayoutSystem
+return LayoutEngine

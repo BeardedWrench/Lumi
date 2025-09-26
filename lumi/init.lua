@@ -2,12 +2,14 @@ local UI = {}
 local Context = require('lumi.core.context')
 local Theme = require('lumi.core.theme')
 local Debug = require('lumi.core.debug')
-local Base = require('lumi.elements.Base')
+local Base = require('lumi.elements.Base.Base')
+local Drag = require('lumi.core.drag')
 
 local uiContext = nil
 
 function UI.init()
   uiContext = Context.init()
+  Drag.init()
   return uiContext
 end
 
@@ -82,6 +84,11 @@ function UI.mousereleased(x, y, button)
   context:mousereleased(x, y, button)
 end
 
+function UI.mousemoved(x, y)
+  local context = UI.getContext()
+  context:mousemoved(x, y)
+end
+
 function UI.textinput(text)
   local context = UI.getContext()
   context:textinput(text)
@@ -90,19 +97,19 @@ end
 setmetatable(UI, {
   __index = function(table, key)
     if key == 'Panel' then
-      return require('lumi.elements.Panel')
+      return require('lumi.elements.Panel.Panel')
     elseif key == 'Label' then
-      return require('lumi.elements.Label')
+      return require('lumi.elements.Label.Label')
     elseif key == 'Button' then
-      return require('lumi.elements.Button')
+      return require('lumi.elements.Button.Button')
     elseif key == 'Input' then
-      return require('lumi.elements.Input')
+      return require('lumi.elements.Input.Input')
     elseif key == 'Slot' then
-      return require('lumi.elements.Slot')
+      return require('lumi.elements.Slot.Slot')
     elseif key == 'Tooltip' then
-      return require('lumi.elements.Tooltip')
+      return require('lumi.elements.Tooltip.Tooltip')
     elseif key == 'Stack' then
-      return require('lumi.layout.Stack')
+      return require('lumi.layout.Stack.Stack')
     elseif key == 'Debug' then
       return Debug
     elseif key == 'Box' then

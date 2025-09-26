@@ -1,11 +1,10 @@
 local RoundedRect = {}
-local Class = require('lumi.core.util.class')
-local Base = require('lumi.elements.Base')
+local Base = require('lumi.elements.Base.Base')
 local Draw = require('lumi.core.draw')
 local Theme = require('lumi.core.theme')
 
 
-local RoundedRectElement = Base.BaseElement:extend()
+local RoundedRectElement = Base:extend()
 
 function RoundedRectElement:init()
   RoundedRectElement.__super.init(self)

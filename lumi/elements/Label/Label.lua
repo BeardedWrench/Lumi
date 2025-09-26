@@ -1,9 +1,9 @@
 local Label = {}
-local Class = require('lumi.core.util.class')
 local Text = require('lumi.elements.foundation.Text')
 local Draw = require('lumi.core.draw')
 local Theme = require('lumi.core.theme')
 local TextUtil = require('lumi.core.util.text')
+
 
 
 local LabelElement = Text.TextElement:extend()
@@ -27,7 +27,6 @@ function LabelElement:setText(text)
   self.text = text or ""
   
   if self.text ~= "" then
-    local TextUtil = require('lumi.core.util.text')
     self.w = TextUtil.estimateWidth(self.text)
     self.h = self.fontSize
   else
@@ -41,7 +40,6 @@ end
 function LabelElement:setFontSize(size)
   self.fontSize = size or Theme.typography.fontSize
   if self.text and self.text ~= "" then
-    local TextUtil = require('lumi.core.util.text')
     self.w = TextUtil.estimateWidth(self.text)
     self.h = self.fontSize
   end

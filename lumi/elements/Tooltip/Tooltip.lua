@@ -1,12 +1,11 @@
 local Tooltip = {}
-local Class = require('lumi.core.util.class')
-local Base = require('lumi.elements.Base')
+local Base = require('lumi.elements.Base.Base')
 local Draw = require('lumi.core.draw')
 local Theme = require('lumi.core.theme')
 local Text = require('lumi.core.util.text')
 
 
-local TooltipElement = Base.BaseElement:extend()
+local TooltipElement = Base:extend()
 
 function TooltipElement:init()
   TooltipElement.__super.init(self)

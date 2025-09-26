@@ -3,9 +3,9 @@ local Class = require('lumi.core.util.class')
 local Input = require('lumi.core.input')
 local Draw = require('lumi.core.draw')
 local Theme = require('lumi.core.theme')
-local Geom = require('lumi.core.util.geom')
 local Debug = require('lumi.core.debug')
-local LayoutSystem = require('lumi.core.layout_system')
+local LayoutEngine = require('lumi.core.layout_engine')
+
 
 local UIContext = Class:extend()
 
@@ -64,7 +64,7 @@ function UIContext:updateLayout()
     
     local screenRect = {x = 0, y = 0, w = self.scaledWidth, h = self.scaledHeight}
     
-    LayoutSystem.layoutTree(self.root, screenRect)
+    LayoutEngine.layoutTree(self.root, screenRect)
   end
 end
 
@@ -104,11 +104,15 @@ function UIContext:getFont()
 end
 
 function UIContext:mousepressed(x, y, button)
-  Input.onMousePress(button, x, y)
+  Input.onMousePress(button, x, y, self)
 end
 
 function UIContext:mousereleased(x, y, button)
-  Input.onMouseRelease(button, x, y)
+  Input.onMouseRelease(button, x, y, self)
+end
+
+function UIContext:mousemoved(x, y)
+  Input.onMouseMove(x, y, self)
 end
 
 function UIContext:textinput(text)
@@ -147,8 +151,7 @@ function UIContext:draw(pass, width, height)
   end
   
       -- Draw debug overlays for hitboxes
-      local Input = require('lumi.core.input')
-      Input.drawDebugOverlays(pass)
+      Input.drawDebugOverlays(pass, self)
 end
 
 function UIContext:addToZLayer(element, zLayer)

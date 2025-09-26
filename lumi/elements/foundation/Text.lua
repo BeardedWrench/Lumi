@@ -1,10 +1,11 @@
 local Text = {}
-local Class = require('lumi.core.util.class')
-local Base = require('lumi.elements.Base')
+local Base = require('lumi.elements.Base.Base')
 local Draw = require('lumi.core.draw')
 local Theme = require('lumi.core.theme')
+local TextUtil = require('lumi.core.util.text')
 
-local TextElement = Base.BaseElement:extend()
+
+local TextElement = Base:extend()
 
 function TextElement:init()
   TextElement.__super.init(self)
@@ -23,7 +24,6 @@ function TextElement:setText(text)
   self.text = text or ""
   
   if self.text ~= "" then
-    local TextUtil = require('lumi.core.util.text')
     self.w = TextUtil.estimateWidth(self.text)
     self.h = self.fontSize
   else

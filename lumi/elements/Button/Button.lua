@@ -1,11 +1,9 @@
 local Button = {}
-local Class = require('lumi.core.util.class')
-local Base = require('lumi.elements.Base')
-local Draw = require('lumi.core.draw')
 local Theme = require('lumi.core.theme')
-local Input = require('lumi.core.input')
-local Label = require('lumi.elements.Label')
+local Label = require('lumi.elements.Label.Label')
 local Box = require('lumi.elements.foundation.Box')
+local TextUtil = require('lumi.core.util.text')
+
 
 
 local ButtonElement = Box.BoxElement:extend()
@@ -144,7 +142,6 @@ function ButtonElement:setDisabledColor(r, g, b, a)
   return self
 end
 
-
 function ButtonElement:setTextColor(r, g, b, a)
   self:setIdleTextColor(r, g, b, a)
   self:setHoverTextColor(r, g, b, a)
@@ -198,7 +195,6 @@ function ButtonElement:_updateButtonSize()
     return
   end
   
-  local TextUtil = require('lumi.core.util.text')
   local textWidth = TextUtil.estimateWidth(self.text)
   local textHeight = self.fontSize  -- Use fontSize as height estimate
   

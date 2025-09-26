@@ -1,6 +1,5 @@
 local Debug = {}
 local Draw = require('lumi.core.draw')
-local Theme = require('lumi.core.theme')
 
 local debugState = {
   enabled = false,

@@ -1,11 +1,9 @@
 local Input = {}
-local Class = require('lumi.core.util.class')
-local Base = require('lumi.elements.Base')
+local Base = require('lumi.elements.Base.Base')
 local Draw = require('lumi.core.draw')
 local Theme = require('lumi.core.theme')
-local InputCore = require('lumi.core.input')
 
-local InputElement = Base.BaseElement:extend()
+local InputElement = Base:extend()
 
 function InputElement:init()
   InputElement.__super.init(self)

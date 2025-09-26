@@ -1,5 +1,8 @@
 local Input = {}
-local Geom = require('lumi.core.util.geom')
+local Drag = require('lumi.core.drag')
+local Debug = require('lumi.core.debug')
+local Draw = require('lumi.core.draw')
+
 
 Input.state = {
   mouse = {
@@ -31,6 +34,13 @@ function Input.update(dt)
   -- This is a fallback approach - we'll update mouse position when we get mouse events
   
   if lovr.mouse then
+    -- Update mouse position from lovr.mouse
+    local x, y = lovr.mouse.getPosition()
+    if x and y then
+      Input.state.mouse.x = x
+      Input.state.mouse.y = y
+    end
+    
     for i = 1, 3 do 
       local wasPressed = Input.state.mouse.buttons[i] or false
       local isPressed = lovr.mouse.isDown(i)
@@ -78,24 +88,40 @@ function Input.updateMousePosition(x, y)
   end
 end
 
-function Input.onMousePress(button, x, y)
+function Input.onMousePress(button, x, y, context)
   Input.updateMousePosition(x, y)
-  local element = Input.findElementAt(x, y)
+  local element = Input.findElementAt(x, y, context)
   
   -- Ensure element is a valid table before proceeding
   if element and type(element) ~= "table" then
     element = nil
   end
   
+  -- Try to start dragging first
+  if element and Drag.startDrag(element, x, y, context) then
+    Input.state.pressed = element
+    return
+  end
+  
+  -- If not dragging, handle normal mouse press
   if element and element._onMousePress and type(element._onMousePress) == "function" then
     Input.state.pressed = element
     element._onMousePress(button, x, y)
   end
 end
 
-function Input.onMouseRelease(button, x, y)
+function Input.onMouseRelease(button, x, y, context)
   Input.updateMousePosition(x, y)
-  local element = Input.findElementAt(x, y)
+
+  -- Stop dragging if we were dragging
+  if Drag.isDragging() then
+    Drag.stopDrag()
+    Input.state.pressed = nil
+    return
+  end
+
+  -- Handle normal mouse release
+  local element = Input.findElementAt(x, y, context)
   if Input.state.pressed and Input.state.pressed == element then
     if element and type(element) == "table" and type(element._onClick) == "function" then
       element._onClick(button, x, y)
@@ -109,9 +135,14 @@ function Input.onMouseRelease(button, x, y)
   Input.state.pressed = nil
 end
 
+function Input.onMouseMove(x, y, context)
+  -- Handle dragging first
+  if Drag.isDragging() then
+    Drag.updateDrag(x, y, context)
+    return
+  end
 
-function Input.onMouseMove(x, y)
-  local element = Input.findElementAt(x, y)
+  local element = Input.findElementAt(x, y, context)
   
   -- Special case for close button - if we found a LabelElement with "×" text, return its ButtonElement parent
   if element and element.className == "LabelElement" and element.text == "×" and element.parent and element.parent.className == "ButtonElement" then
@@ -166,11 +197,9 @@ function Input.onTextInput(text)
   end
 end
 
-function Input.findElementAt(x, y)
+function Input.findElementAt(x, y, context)
   local success, result = pcall(function()
-    -- Get the UI context to find the root element
-    local UI = require('lumi')
-    local context = UI.getContext()
+    -- Get the root element from the provided context
     local root = context:getRoot()
   
     if not root then
@@ -191,6 +220,8 @@ function Input.findElementAt(x, y)
         return element.parent
       end
     end
+    
+    -- No special cases needed - the drag system handles this cleanly
     
     return element
   end)
@@ -248,17 +279,14 @@ function Input._findElementAtRecursive(element, x, y)
   return nil
 end
 
-function Input.drawDebugOverlays(pass)
+function Input.drawDebugOverlays(pass, context)
   -- Check if debug is enabled
-  local Debug = require('lumi.core.debug')
   local debugState = Debug.getState()
   if not debugState.enabled or not debugState.showBounds then
     return
   end
   
-  -- Get the UI context to find the root element
-  local UI = require('lumi')
-  local context = UI.getContext()
+  -- Get the root element from the provided context
   local root = context:getRoot()
   
   if not root then
@@ -285,7 +313,6 @@ function Input._drawDebugOverlaysRecursive(element, pass)
     end
     
     -- Draw rectangle outline using Draw.rectBorder
-    local Draw = require('lumi.core.draw')
     Draw.rectBorder(pass, rect.x, rect.y, rect.w, rect.h, 2, color[1], color[2], color[3], color[4])
   end
   

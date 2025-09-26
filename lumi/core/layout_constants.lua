@@ -1,5 +1,4 @@
 local Layout = {}
-local Geom = require('lumi.core.util.geom')
 local Measure = require('lumi.core.measure')
 
 Layout.DIRECTION = {

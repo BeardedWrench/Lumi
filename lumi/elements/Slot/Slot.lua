@@ -1,11 +1,10 @@
 local Slot = {}
-local Class = require('lumi.core.util.class')
-local Base = require('lumi.elements.Base')
+local Base = require('lumi.elements.Base.Base')
 local Draw = require('lumi.core.draw')
 local Theme = require('lumi.core.theme')
 
 
-local SlotElement = Base.BaseElement:extend()
+local SlotElement = Base:extend()
 
 function SlotElement:init()
   SlotElement.__super.init(self)

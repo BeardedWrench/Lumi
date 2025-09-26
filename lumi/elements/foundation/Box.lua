@@ -1,10 +1,9 @@
 local Box = {}
-local Class = require('lumi.core.util.class')
-local Base = require('lumi.elements.Base')
+local Base = require('lumi.elements.Base.Base')
 local Draw = require('lumi.core.draw')
 local Theme = require('lumi.core.theme')
 
-local BoxElement = Base.BaseElement:extend()
+local BoxElement = Base:extend()
 
 function BoxElement:init()
   BoxElement.__super.init(self)

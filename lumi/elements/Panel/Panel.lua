@@ -1,30 +1,24 @@
 local Panel = {}
-local Class = require('lumi.core.util.class')
-local Base = require('lumi.elements.Base')
 local Box = require('lumi.elements.foundation.Box')
-local Label = require('lumi.elements.Label')
-local Button = require('lumi.elements.Button')
+local Label = require('lumi.elements.Label.Label')
+local Button = require('lumi.elements.Button.Button')
 local Theme = require('lumi.core.theme')
-local Draw = require('lumi.core.draw')
-local LayoutSystem = require('lumi.core.layout_system')
+local LayoutEngine = require('lumi.core.layout_engine')
 
 local PanelElement = Box.BoxElement:extend()
 
 function PanelElement:init()
   PanelElement.__super.init(self)
+  self.className = "PanelElement"
   self.title = nil
   self.titlebarHeight = Theme.spacing.titlebarHeight
   self.closable = false
-  self.draggable = false
   self.closeButtonSize = 16
   self.titlebar = nil
   self.titleLabel = nil
   self.closeButton = nil
   self.contentBox = nil
   self._contentBoxCreated = false
-  self._dragging = false
-  self._dragOffsetX = 0
-  self._dragOffsetY = 0
   self.w = 400
   self.h = 300
   self:setBackgroundColor(Theme.colors.panel[1], Theme.colors.panel[2], Theme.colors.panel[3], Theme.colors.panel[4])
@@ -81,6 +75,11 @@ function PanelElement:setTitle(title)
     self.titleLabel:setText(title or "")
   end
   
+  -- Set the titlebar as the drag area when title is set
+  if self.titlebar then
+    self:setDragArea(self.titlebar)
+  end
+  
   return self
 end
 
@@ -106,13 +105,13 @@ function PanelElement:setClosable(closable)
       :setText("×")
       :setAnchors('right', 'center')
       :setPos(8, 0)
-      :setIdleColor(0.3, 0.3, 0.3, 1.0)
-      :setHoverColor(0.4, 0.4, 0.4, 1.0)
-      :setPressColor(0.2, 0.2, 0.2, 1.0)
-      :setBorderWidth(1)
-      :setBorderColor(0.5, 0.5, 0.5, 1.0)
-      :setBorderRadius(2)
-      :setTextColor(0.8, 0.8, 0.8, 1.0)
+      :setIdleColor(0,0,0,0)
+      :setHoverColor(0,0,0,0)
+      :setPressColor(0,0,0,0)
+      :setBorderColor(0,0,0,0)
+      :setIdleTextColor(1, 1, 1, 1.0)
+      :setHoverTextColor(0.5, 0.5, 0.5, 1.0)
+      :setPressTextColor(0.5, 0.5, 0.5, 1.0)
       :setZIndex(Theme.zLayers.content + 2)
       :onClick(function()
         local panel = self
@@ -133,10 +132,7 @@ function PanelElement:setClosable(closable)
   return self
 end
 
-function PanelElement:setDraggable(draggable)
-  self.draggable = draggable
-  return self
-end
+-- Draggable setter is inherited from BaseElement
 
 function PanelElement:onClose(callback)
   self.onClose = callback
@@ -164,7 +160,7 @@ function PanelElement:layout(rect)
   end
         if self.contentBox then
           
-          local contentArea = LayoutSystem.getContentArea(self)
+          local contentArea = LayoutEngine.getContentArea(self)
           if contentArea then
             self.contentBox:setPos(0, self.titlebarHeight)
             local contentBoxHeight = contentArea.h - self.titlebarHeight
@@ -236,35 +232,7 @@ function PanelElement:hitTest(x, y)
   return nil
 end
 
-function PanelElement:onMousePress(x, y, button)
-  if self.draggable and self.title and button == 1 then
-    local titlebarRect = self.titlebar:getLayoutRect()
-    if titlebarRect and x >= titlebarRect.x and x <= titlebarRect.x + titlebarRect.w and 
-       y >= titlebarRect.y and y <= titlebarRect.y + titlebarRect.h then
-      self._dragging = true
-      self._dragOffsetX = x - self.x
-      self._dragOffsetY = y - self.y
-      return true
-    end
-  end
-  return PanelElement.__super.onMousePress(self, x, y, button)
-end
-
-function PanelElement:onMouseRelease(x, y, button)
-  if self._dragging then
-    self._dragging = false
-    return true
-  end
-  return PanelElement.__super.onMouseRelease(self, x, y, button)
-end
-
-function PanelElement:onMouseMove(x, y)
-  if self._dragging then
-    self:setPos(x - self._dragOffsetX, y - self._dragOffsetY)
-    return true
-  end
-  return PanelElement.__super.onMouseMove(self, x, y)
-end
+-- All mouse event handling is now done by the drag system
 
 function PanelElement:Create()
   local instance = setmetatable({}, PanelElement)
