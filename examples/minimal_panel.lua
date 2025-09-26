@@ -28,9 +28,6 @@ function lovr.load()
   -- Create and set the minimal UI as root
   local panel = createMinimalUI()
   UI.setRoot(panel)
-  
-  print("Minimal Panel Test loaded.")
-  print("You should see a single panel with titlebar, title, and close button.")
 end
 
 function lovr.update(dt)

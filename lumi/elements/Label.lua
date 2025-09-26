@@ -38,8 +38,6 @@ end
 -- Text setters
 function LabelElement:setText(text)
   self.text = text or ""
-  print("text: " .. self.text)
-  print("incoming text: " .. text)
   -- Calculate text width and set element size
   if self.text ~= "" then
     local TextUtil = require('lumi.core.util.text')
