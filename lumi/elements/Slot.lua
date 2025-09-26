@@ -9,19 +9,14 @@ local SlotElement = Base.BaseElement:extend()
 
 function SlotElement:init()
   SlotElement.__super.init(self)
-  
-  
   self.iconPath = nil
   self.iconColor = {1, 1, 1, 1}
   self.borderColor = Theme.colors.border
   self.hoverBorderColor = Theme.colors.borderHover
   self.pressBorderColor = Theme.colors.press
-  
-  
   self._hovered = false
   self._pressed = false
 end
-
 
 function SlotElement:setIcon(path)
   self.iconPath = path
@@ -64,17 +59,12 @@ function SlotElement:setPressBorderColor(r, g, b, a)
   return self
 end
 
-
 function SlotElement:preferredSize()
   local w, h = SlotElement.__super.preferredSize(self)
-  
-  
   w = math.max(w, 64)
   h = math.max(h, 64)
-  
   return w, h
 end
-
 
 function SlotElement:onMouseEnter()
   self._hovered = true
@@ -100,7 +90,6 @@ function SlotElement:onMouseRelease(button, x, y)
   SlotElement.__super.onMouseRelease(self, button, x, y)
 end
 
-
 function SlotElement:draw(pass)
   if not self.visible then
     return
@@ -111,14 +100,12 @@ function SlotElement:draw(pass)
     return
   end
   
-  
   if self.backgroundColor then
     local bg = self.backgroundColor
     local alpha = bg[4] * self.alpha
     Draw.roundedRect(pass, rect.x, rect.y, rect.w, rect.h, 
       self.borderRadius, bg[1], bg[2], bg[3], alpha)
   end
-  
   
   local borderColor = self.borderColor
   if self._pressed then
@@ -133,19 +120,16 @@ function SlotElement:draw(pass)
       self.borderWidth, borderColor[1], borderColor[2], borderColor[3], borderAlpha)
   end
   
-  
   if self.iconPath then
     local iconAlpha = self.iconColor[4] * self.alpha
     Draw.icon(pass, rect.x, rect.y, rect.w, rect.h, self.iconPath,
       self.iconColor[1], self.iconColor[2], self.iconColor[3], iconAlpha)
   end
   
-  
   for _, child in ipairs(self.children) do
     child:draw(pass)
   end
 end
-
 
 Slot.SlotElement = SlotElement
 Slot.Create = function() return SlotElement:Create() end

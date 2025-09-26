@@ -1,9 +1,5 @@
-
-
-
 local Input = {}
 local Geom = require('lumi.core.util.geom')
-
 
 Input.state = {
   mouse = {
@@ -21,7 +17,6 @@ Input.state = {
   pressed = nil
 }
 
-
 function Input.init()
   Input.state.mouse.buttons = {}
   Input.state.keyboard.keys = {}
@@ -31,20 +26,17 @@ function Input.init()
   Input.state.pressed = nil
 end
 
-
 function Input.update(dt)
   
   if lovr.mouse then
     Input.state.mouse.x, Input.state.mouse.y = lovr.mouse.getPosition()
   end
   
-  
   if lovr.mouse then
     for i = 1, 3 do 
       local wasPressed = Input.state.mouse.buttons[i] or false
       local isPressed = lovr.mouse.isDown(i)
       Input.state.mouse.buttons[i] = isPressed
-      
       
       if isPressed and not wasPressed then
         Input.onMousePress(i, Input.state.mouse.x, Input.state.mouse.y)
@@ -53,10 +45,8 @@ function Input.update(dt)
       end
     end
     
-    
     Input.state.mouse.wheel = lovr.mouse.getWheel()
   end
-  
   
   if lovr.keyboard then
     
@@ -65,7 +55,6 @@ function Input.update(dt)
       Input.state.keyboard.text = text
       Input.onTextInput(text)
     end
-    
     
     for key in pairs(Input.state.keyboard.keys) do
       local wasPressed = Input.state.keyboard.keys[key] or false
@@ -81,9 +70,7 @@ function Input.update(dt)
   end
 end
 
-
 function Input.onMousePress(button, x, y)
-  
   local element = Input.findElementAt(x, y)
   if element then
     Input.state.pressed = element
@@ -112,25 +99,20 @@ end
 function Input.onMouseMove(x, y)
   local element = Input.findElementAt(x, y)
   
-  
   if element ~= Input.state.hover then
     if Input.state.hover and Input.state.hover.onMouseLeave then
       Input.state.hover:onMouseLeave()
     end
-    
     Input.state.hover = element
-    
     if element and element.onMouseEnter then
       element:onMouseEnter()
     end
   end
   
-  
   if element and element.onMouseMove then
     element:onMouseMove(x, y)
   end
 end
-
 
 function Input.onKeyPress(key)
   if Input.state.focus and Input.state.focus.onKeyPress then
@@ -150,13 +132,9 @@ function Input.onTextInput(text)
   end
 end
 
-
 function Input.findElementAt(x, y)
-  
-  
   return nil
 end
-
 
 function Input.setFocus(element)
   if Input.state.focus and Input.state.focus.onBlur then
@@ -170,31 +148,25 @@ function Input.setFocus(element)
   end
 end
 
-
 function Input.getFocus()
   return Input.state.focus
 end
-
 
 function Input.getHover()
   return Input.state.hover
 end
 
-
 function Input.isMouseDown(button)
   return Input.state.mouse.buttons[button] or false
 end
-
 
 function Input.isKeyDown(key)
   return Input.state.keyboard.keys[key] or false
 end
 
-
 function Input.getMousePosition()
   return Input.state.mouse.x, Input.state.mouse.y
 end
-
 
 function Input.getMouseWheel()
   return Input.state.mouse.wheel

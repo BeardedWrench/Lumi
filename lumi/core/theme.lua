@@ -1,39 +1,30 @@
 local Theme = {}
-
-
 Theme.colors = {
-  
   background = {0.1, 0.1, 0.1, 0.9},
   panel = {0.15, 0.15, 0.15, 0.95},
   button = {0.2, 0.2, 0.2, 1.0},
   input = {0.1, 0.1, 0.1, 1.0},
   
-  
   text = {0.9, 0.9, 0.9, 1.0},
   textSecondary = {0.7, 0.7, 0.7, 1.0},
   textDisabled = {0.4, 0.4, 0.4, 1.0},
-  
   
   border = {0.3, 0.3, 0.3, 1.0},
   borderHover = {0.5, 0.5, 0.5, 1.0},
   borderFocus = {0.2, 0.6, 1.0, 1.0},
   
-  
   hover = {0.3, 0.3, 0.3, 0.5},
   press = {0.2, 0.2, 0.2, 0.8},
   disabled = {0.2, 0.2, 0.2, 0.5},
-  
   
   primary = {0.2, 0.6, 1.0, 1.0},
   success = {0.2, 0.8, 0.2, 1.0},
   warning = {1.0, 0.6, 0.2, 1.0},
   error = {1.0, 0.2, 0.2, 1.0},
   
-  
   tooltip = {0.05, 0.05, 0.05, 0.95},
   tooltipText = {0.9, 0.9, 0.9, 1.0}
 }
-
 
 Theme.spacing = {
   padding = 8,
@@ -47,7 +38,6 @@ Theme.spacing = {
   tooltipMaxWidth = 200
 }
 
-
 Theme.typography = {
   fontSize = 16,        
   fontSizeSmall = 12,   
@@ -55,12 +45,10 @@ Theme.typography = {
   lineHeight = 1.2
 }
 
-
 Theme.animation = {
   tooltipDelay = 0.5, 
   transitionSpeed = 0.2 
 }
-
 
 Theme.shadows = {
   enabled = true,
@@ -70,7 +58,6 @@ Theme.shadows = {
   color = {0, 0, 0, 0.3}
 }
 
-
 Theme.zLayers = {
   background = 0,
   content = 100,
@@ -78,7 +65,6 @@ Theme.zLayers = {
   tooltip = 300,
   modal = 400
 }
-
 
 function Theme.set(overrides)
   local function deepMerge(target, source)

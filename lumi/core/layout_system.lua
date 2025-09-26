@@ -4,12 +4,9 @@ function LayoutSystem.layoutElement(element, parentRect, screenRect)
   if not element or not element.visible then
     return nil
   end
-  
-  
-  
+
   local elementWidth = element.w or 0
   local elementHeight = element.h or 0
-  
   
   if element.fullWidth and parentRect then
     elementWidth = parentRect.w
@@ -18,29 +15,21 @@ function LayoutSystem.layoutElement(element, parentRect, screenRect)
     elementHeight = parentRect.h
   end
   
-  
   elementWidth = math.max(elementWidth, element.minWidth or 0)
   elementHeight = math.max(elementHeight, element.minHeight or 0)
   elementWidth = math.min(elementWidth, element.maxWidth or math.huge)
   elementHeight = math.min(elementHeight, element.maxHeight or math.huge)
   
-  
   local x, y = element.x or 0, element.y or 0
-  
   if parentRect then
-    
     if parentRect == screenRect then
-      
       x, y = LayoutSystem.applyAnchor(x, y, elementWidth, elementHeight, parentRect, element)
     else
-      
       x, y = LayoutSystem.applyAnchor(x, y, elementWidth, elementHeight, parentRect, element)
     end
   else
     
   end
-  
-  
   
   local layoutRect = {
     x = x,
@@ -49,24 +38,15 @@ function LayoutSystem.layoutElement(element, parentRect, screenRect)
     h = elementHeight
   }
   
-  
-  
   element._layoutRect = layoutRect
-  
   return layoutRect
 end
-
 
 function LayoutSystem.applyAnchor(x, y, elementWidth, elementHeight, parentRect, element)
   local parentX, parentY = parentRect.x, parentRect.y
   local parentWidth, parentHeight = parentRect.w, parentRect.h
-  
-  
   local anchorX = element.anchorX or 'left'
   local anchorY = element.anchorY or 'top'
-  
-  
-  
   local finalX
   if anchorX == 'left' then
     finalX = parentX + x
@@ -75,8 +55,6 @@ function LayoutSystem.applyAnchor(x, y, elementWidth, elementHeight, parentRect,
   elseif anchorX == 'right' then
     finalX = parentX + parentWidth - elementWidth - x
   end
-  
-  
   
   local finalY
   if anchorY == 'top' then
@@ -87,10 +65,8 @@ function LayoutSystem.applyAnchor(x, y, elementWidth, elementHeight, parentRect,
     finalY = parentY + parentHeight - elementHeight - y
   end
   
-  
   return finalX, finalY
 end
-
 
 function LayoutSystem.getContentArea(element)
   local layoutRect = element._layoutRect
@@ -109,7 +85,6 @@ function LayoutSystem.getContentArea(element)
   }
 end
 
-
 function LayoutSystem.layoutChildren(element, screenRect)
   if not element.children or #element.children == 0 then
     return
@@ -120,20 +95,14 @@ function LayoutSystem.layoutChildren(element, screenRect)
     return
   end
   
-  
   if element.className == "StackElement" then
-    
     if element.layout then
       element:layout(contentArea)
     end
-    
     LayoutSystem.layoutStack(element, contentArea)
   else
-    
     for _, child in ipairs(element.children) do
-      
       if element.className == "PanelElement" and child == element.titlebar then
-        
         LayoutSystem.layoutChildren(child, screenRect)
       else
         LayoutSystem.layoutElement(child, contentArea, screenRect)
@@ -143,20 +112,13 @@ function LayoutSystem.layoutChildren(element, screenRect)
   end
 end
 
-
 function LayoutSystem.layoutTree(rootElement, screenRect)
   if not rootElement then
     return
   end
-  
-  
-  
   LayoutSystem.layoutElement(rootElement, screenRect, screenRect)
-  
-  
   LayoutSystem.layoutChildren(rootElement, screenRect)
 end
-
 
 function LayoutSystem.layoutStack(stackElement, contentArea)
   if not stackElement.children or #stackElement.children == 0 then
@@ -167,8 +129,6 @@ function LayoutSystem.layoutStack(stackElement, contentArea)
   local gap = stackElement.gap or 0
   local justify = stackElement.justify or 'start'
   local align = stackElement.align or 'start'
-  
-  
   local totalSize = 0
   local maxCrossSize = 0
   local childSizes = {}
@@ -191,15 +151,12 @@ function LayoutSystem.layoutStack(stackElement, contentArea)
     table.insert(childSizes, {main = mainSize, cross = crossSize})
   end
   
-  
   if #stackElement.children > 1 then
     totalSize = totalSize + gap * (#stackElement.children - 1)
   end
   
-  
   local availableMain = direction == 'column' and contentArea.h or contentArea.w
   local availableCross = direction == 'column' and contentArea.w or contentArea.h
-  
   
   local startPos = 0
   if justify == 'center' then
@@ -218,12 +175,10 @@ function LayoutSystem.layoutStack(stackElement, contentArea)
     gap = gap + space
   end
   
-  
   local currentPos = startPos
   for i, child in ipairs(stackElement.children) do
     local childSize = childSizes[i]
     local childX, childY, childW, childH
-    
     
     local crossOffset = 0
     if align == 'center' then
@@ -244,12 +199,10 @@ function LayoutSystem.layoutStack(stackElement, contentArea)
       childH = childSize.cross
     end
     
-    
     child.x = childX - contentArea.x
     child.y = childY - contentArea.y
     child.w = childW
     child.h = childH
-    
     
     LayoutSystem.layoutElement(child, contentArea)
     LayoutSystem.layoutChildren(child)
@@ -257,7 +210,6 @@ function LayoutSystem.layoutStack(stackElement, contentArea)
     currentPos = currentPos + childSize.main + gap
   end
 end
-
 
 LayoutSystem.LayoutSystem = LayoutSystem
 LayoutSystem.Create = function() return LayoutSystem end

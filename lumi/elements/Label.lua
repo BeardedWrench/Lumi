@@ -10,27 +10,18 @@ local LabelElement = Text.TextElement:extend()
 
 function LabelElement:init()
   LabelElement.__super.init(self)
-  
-  
   self.className = "LabelElement"
-  
-  
   self.text = ""
   self.fontSize = Theme.typography.fontSize
   self.textColor = Theme.colors.text
   self.textAlign = 'left'  
   self.font = nil
-  
-  
   self.wrapMode = 'none'
   self.ellipsis = false
   self.maxWidth = math.huge
-  
-  
   self.w = 0
   self.h = 0
 end
-
 
 function LabelElement:setText(text)
   self.text = text or ""
@@ -49,14 +40,11 @@ end
 
 function LabelElement:setFontSize(size)
   self.fontSize = size or Theme.typography.fontSize
-  
-  
   if self.text and self.text ~= "" then
     local TextUtil = require('lumi.core.util.text')
     self.w = TextUtil.estimateWidth(self.text)
     self.h = self.fontSize
   end
-  
   return self
 end
 
@@ -79,7 +67,6 @@ function LabelElement:setFont(font)
   return self
 end
 
-
 function LabelElement:setWrapMode(mode)
   self.wrapMode = mode or 'none'
   return self
@@ -95,31 +82,23 @@ function LabelElement:setMaxWidth(width)
   return self
 end
 
-
-
-
 function LabelElement:draw(pass)
   local rect = self:getLayoutRect()
   if rect then
-    
     if self.backgroundColor then
       local bg = self.backgroundColor
       local alpha = bg[4] * self.alpha
       Draw.rect(pass, rect.x, rect.y, rect.w, rect.h, bg[1], bg[2], bg[3], alpha)
     end
   end
-  
-  
   LabelElement.__super.draw(self, pass)
 end
-
 
 function LabelElement:Create()
   local instance = setmetatable({}, LabelElement)
   instance:init()
   return instance
 end
-
 
 Label.LabelElement = LabelElement
 Label.Create = function() return LabelElement:Create() end

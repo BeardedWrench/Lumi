@@ -10,19 +10,13 @@ local TooltipElement = Base.BaseElement:extend()
 
 function TooltipElement:init()
   TooltipElement.__super.init(self)
-  
-  
   self.text = ""
   self.maxWidth = Theme.spacing.tooltipMaxWidth
   self.fontSize = Theme.typography.fontSizeSmall
   self.padding = Theme.spacing.tooltipPadding
-  
-  
   self.backgroundColor = Theme.colors.tooltip
   self.textColor = Theme.colors.tooltipText
   self.borderColor = Theme.colors.border
-  
-  
   self._wrappedLines = {}
   self._textWidth = 0
   self._textHeight = 0
@@ -30,7 +24,6 @@ function TooltipElement:init()
   self._targetX = 0
   self._targetY = 0
 end
-
 
 function TooltipElement:setText(text)
   self.text = text or ""
@@ -54,7 +47,6 @@ function TooltipElement:setPadding(padding)
   self.padding = padding or Theme.spacing.tooltipPadding
   return self
 end
-
 
 function TooltipElement:setBackgroundColor(r, g, b, a)
   if type(r) == "table" then
@@ -83,7 +75,6 @@ function TooltipElement:setBorderColor(r, g, b, a)
   return self
 end
 
-
 function TooltipElement:_updateTextLayout()
   if self.text == "" then
     self._wrappedLines = {}
@@ -91,7 +82,6 @@ function TooltipElement:_updateTextLayout()
     self._textHeight = 0
     return
   end
-  
   
   local words = {}
   for word in self.text:gmatch("%S+") do
@@ -108,7 +98,6 @@ function TooltipElement:_updateTextLayout()
     else
       testLine = word
     end
-    
     if Text.estimateWidth(testLine) <= self.maxWidth then
       currentLine = testLine
     else
@@ -127,17 +116,13 @@ function TooltipElement:_updateTextLayout()
   end
   
   self._wrappedLines = lines
-  
-  
   self._textWidth = 0
   for _, line in ipairs(lines) do
     local lineWidth = Text.estimateWidth(line)
     self._textWidth = math.max(self._textWidth, lineWidth)
   end
-  
   self._textHeight = #lines * self.fontSize * Theme.typography.lineHeight
 end
-
 
 function TooltipElement:setTarget(element, x, y)
   self._targetElement = element
@@ -146,44 +131,33 @@ function TooltipElement:setTarget(element, x, y)
   return self
 end
 
-
 function TooltipElement:preferredSize()
   local w = self._textWidth + self.padding * 2
   local h = self._textHeight + self.padding * 2
   return w, h
 end
 
-
 function TooltipElement:layout(rect)
   local layoutRect = TooltipElement.__super.layout(self, rect)
-  
-  
   if self._targetElement then
     local targetRect = self._targetElement:getLayoutRect()
     if targetRect then
-      
       local x = targetRect.x + (targetRect.w - layoutRect.w) / 2
       local y = targetRect.y + targetRect.h + 5
-      
-      
       if x < 0 then
         x = 5
       elseif x + layoutRect.w > 1920 then 
         x = 1920 - layoutRect.w - 5
       end
-      
       if y + layoutRect.h > 1080 then
         y = targetRect.y - layoutRect.h - 5
       end
-      
       layoutRect.x = x
       layoutRect.y = y
     end
   end
-  
   return layoutRect
 end
-
 
 function TooltipElement:draw(pass)
   if not self.visible then
@@ -201,14 +175,12 @@ function TooltipElement:draw(pass)
   Draw.roundedRect(pass, rect.x, rect.y, rect.w, rect.h, 
     self.borderRadius, bg[1], bg[2], bg[3], alpha)
   
-  
   if self.borderColor and self.borderWidth > 0 then
     local border = self.borderColor
     local borderAlpha = border[4] * self.alpha
     Draw.rectBorder(pass, rect.x, rect.y, rect.w, rect.h, 
       self.borderWidth, border[1], border[2], border[3], borderAlpha)
   end
-  
   
   if self.text ~= "" and #self._wrappedLines > 0 then
     local textColor = self.textColor
@@ -217,7 +189,6 @@ function TooltipElement:draw(pass)
     local textX = rect.x + self.padding
     local textY = rect.y + self.padding
     
-    
     for i, line in ipairs(self._wrappedLines) do
       local lineY = textY + (i - 1) * self.fontSize * Theme.typography.lineHeight
       Draw.text(pass, line, textX, lineY, self.fontSize,
@@ -225,12 +196,10 @@ function TooltipElement:draw(pass)
     end
   end
   
-  
   for _, child in ipairs(self.children) do
     child:draw(pass)
   end
 end
-
 
 Tooltip.TooltipElement = TooltipElement
 Tooltip.Create = function() return TooltipElement:Create() end

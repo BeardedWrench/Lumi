@@ -4,27 +4,20 @@ local Base = require('lumi.elements.Base')
 local Draw = require('lumi.core.draw')
 local Theme = require('lumi.core.theme')
 
-
 local TextElement = Base.BaseElement:extend()
 
 function TextElement:init()
   TextElement.__super.init(self)
   
-  
   self.className = "TextElement"
-  
-  
   self.text = ""
   self.fontSize = Theme.typography.fontSize
   self.textColor = Theme.colors.text
   self.font = nil
   self.textAlign = 'left'
-  
-  
   self.w = 0
   self.h = 0
 end
-
 
 function TextElement:setText(text)
   self.text = text or ""
@@ -41,12 +34,10 @@ function TextElement:setText(text)
   return self
 end
 
-
 function TextElement:setFontSize(size)
   self.fontSize = size or Theme.typography.fontSize
   return self
 end
-
 
 function TextElement:setTextColor(r, g, b, a)
   if type(r) == "table" then
@@ -56,7 +47,6 @@ function TextElement:setTextColor(r, g, b, a)
   end
   return self
 end
-
 
 function TextElement:setFont(font)
   self.font = font
@@ -69,7 +59,6 @@ function TextElement:setTextAlign(align)
   return self
 end
 
-
 function TextElement:draw(pass)
   if not self.visible or self.text == "" then
     return
@@ -80,29 +69,24 @@ function TextElement:draw(pass)
     return
   end
   
-  
   local textX = rect.x
   local textY = rect.y + rect.h / 2
-  
   
   local textColor = self.textColor
   local alpha = textColor[4] * self.alpha
   Draw.text(pass, self.text, textX, textY, self.fontSize,
     textColor[1], textColor[2], textColor[3], alpha, self.textAlign)
   
-  
   for _, child in ipairs(self.children) do
     child:draw(pass)
   end
 end
-
 
 function TextElement:Create()
   local instance = setmetatable({}, TextElement)
   instance:init()
   return instance
 end
-
 
 Text.TextElement = TextElement
 Text.Create = TextElement.Create

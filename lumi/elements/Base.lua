@@ -4,11 +4,9 @@ local Geom = require('lumi.core.util.geom')
 local Theme = require('lumi.core.theme')
 local LayoutSystem = require('lumi.core.layout_system')
 
-
 local BaseElement = Class:extend()
 
 function BaseElement:init()
-  
   self.x = 0
   self.y = 0
   self.w = 0
@@ -18,12 +16,10 @@ function BaseElement:init()
   self.maxWidth = math.huge
   self.maxHeight = math.huge
   
-  
   self.anchorX = 'left'   
   self.anchorY = 'top'    
   self.margin = {0, 0, 0, 0} 
   self.padding = {0, 0, 0, 0} 
-  
   
   self.fullWidth = false
   self.fullHeight = false
@@ -31,25 +27,20 @@ function BaseElement:init()
   self.flexShrink = 1
   self.flexBasis = 'auto'
   
-  
   self.visible = true
   self.alpha = 1.0
   self.enabled = true
   self.zIndex = Theme.zLayers.content
-  
   
   self.backgroundColor = nil
   self.borderColor = nil
   self.borderWidth = Theme.spacing.borderWidth
   self.borderRadius = Theme.spacing.borderRadius
   
-  
   self.parent = nil
   self.children = {}
   
-  
   self.tooltip = nil
-  
   
   self.onClick = nil
   self.onHover = nil
@@ -64,13 +55,11 @@ function BaseElement:init()
   self.onKeyRelease = nil
   self.onTextInput = nil
   
-  
   self._layoutRect = nil
   self._hovered = false
   self._focused = false
   self._pressed = false
 end
-
 
 function BaseElement:setPos(x, y)
   self.x = x or 0
@@ -107,18 +96,13 @@ function BaseElement:setMaxSize(w, h)
 end
 
 
-
-
 function BaseElement:setAnchors(anchorX, anchorY)
   self.anchorX = anchorX or 'left'
   self.anchorY = anchorY or 'top'
-  
-  
   self.anchor = self.anchorY .. '-' .. self.anchorX
   if self.anchorX == 'center' and self.anchorY == 'center' then
     self.anchor = 'center'
   end
-  
   return self
 end
 
@@ -139,7 +123,6 @@ function BaseElement:setPadding(top, right, bottom, left)
   end
   return self
 end
-
 
 function BaseElement:setFullWidth(fullWidth)
   self.fullWidth = fullWidth
@@ -166,7 +149,6 @@ function BaseElement:setFlexBasis(basis)
   return self
 end
 
-
 function BaseElement:setVisible(visible)
   self.visible = visible
   return self
@@ -186,7 +168,6 @@ function BaseElement:setZIndex(zIndex)
   self.zIndex = zIndex or Theme.zLayers.content
   return self
 end
-
 
 function BaseElement:setBackgroundColor(r, g, b, a)
   if type(r) == "table" then
@@ -215,7 +196,6 @@ function BaseElement:setBorderRadius(radius)
   self.borderRadius = radius or Theme.spacing.borderRadius
   return self
 end
-
 
 function BaseElement:setParent(parent)
   if self.parent then
@@ -263,7 +243,6 @@ function BaseElement:setTooltip(text)
   self.tooltip = {text = text}
   return self
 end
-
 
 function BaseElement:onClick(callback)
   self.onClick = callback
@@ -325,7 +304,6 @@ function BaseElement:onTextInput(callback)
   return self
 end
 
-
 function BaseElement:preferredSize()
   return self.w, self.h
 end
@@ -343,7 +321,6 @@ end
 function BaseElement:layoutChildren()
   LayoutSystem.layoutChildren(self)
 end
-
 
 function BaseElement:hitTest(x, y)
   if not self.visible or not self.enabled then
@@ -370,14 +347,12 @@ function BaseElement:hitTest(x, y)
   return nil
 end
 
-
 function BaseElement:update(dt)
   
   for _, child in ipairs(self.children) do
     child:update(dt)
   end
 end
-
 
 function BaseElement:draw(pass)
   if not self.visible then
@@ -389,13 +364,11 @@ function BaseElement:draw(pass)
     return
   end
   
-  
   if self.backgroundColor then
     local bg = self.backgroundColor
     local alpha = bg[4] * self.alpha
     
   end
-  
   
   if self.borderColor and self.borderWidth > 0 then
     local border = self.borderColor
@@ -403,12 +376,10 @@ function BaseElement:draw(pass)
     
   end
   
-  
   for _, child in ipairs(self.children) do
     child:draw(pass)
   end
 end
-
 
 function BaseElement:getAbsolutePos()
   local x, y = self.x, self.y
@@ -426,26 +397,21 @@ function BaseElement:getAbsolutePos()
   return x, y
 end
 
-
 function BaseElement:getContentRect()
   return LayoutSystem.getContentArea(self)
 end
-
 
 function BaseElement:isHovered()
   return self._hovered
 end
 
-
 function BaseElement:isFocused()
   return self._focused
 end
 
-
 function BaseElement:isPressed()
   return self._pressed
 end
-
 
 function BaseElement:setHovered(hovered)
   if self._hovered ~= hovered then
@@ -458,7 +424,6 @@ function BaseElement:setHovered(hovered)
   end
 end
 
-
 function BaseElement:setFocused(focused)
   if self._focused ~= focused then
     self._focused = focused
@@ -470,11 +435,9 @@ function BaseElement:setFocused(focused)
   end
 end
 
-
 function BaseElement:setPressed(pressed)
   self._pressed = pressed
 end
-
 
 Base.BaseElement = BaseElement
 Base.Create = function() return BaseElement:Create() end

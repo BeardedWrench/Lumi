@@ -2,12 +2,10 @@ local Layout = {}
 local Geom = require('lumi.core.util.geom')
 local Measure = require('lumi.core.measure')
 
-
 Layout.DIRECTION = {
   ROW = 'row',
   COLUMN = 'column'
 }
-
 
 Layout.JUSTIFY = {
   START = 'start',
@@ -18,14 +16,12 @@ Layout.JUSTIFY = {
   SPACE_EVENLY = 'space-evenly'
 }
 
-
 Layout.ALIGN = {
   START = 'start',
   END = 'end',
   CENTER = 'center',
   STRETCH = 'stretch'
 }
-
 
 function Layout.calculateFlexSizes(items, availableSize, direction, gap)
   gap = gap or 0
@@ -35,7 +31,6 @@ function Layout.calculateFlexSizes(items, availableSize, direction, gap)
   local totalFlexGrow = 0
   local totalFlexShrink = 0
   local totalFixedSize = 0
-  
   
   for _, item in ipairs(items) do
     local flexGrow = item.flexGrow or 0
@@ -53,7 +48,6 @@ function Layout.calculateFlexSizes(items, availableSize, direction, gap)
       totalFixedSize = totalFixedSize + flexBasis
     end
   end
-  
   
   local remainingSpace = availableForItems - totalFixedSize
   local sizes = {}
@@ -74,11 +68,9 @@ function Layout.calculateFlexSizes(items, availableSize, direction, gap)
     local finalSize = baseSize
     
     if remainingSpace > 0 and totalFlexGrow > 0 then
-      
       local extraSpace = remainingSpace * (flexGrow / totalFlexGrow)
       finalSize = baseSize + extraSpace
     elseif remainingSpace < 0 and totalFlexShrink > 0 then
-      
       local shrinkSpace = math.abs(remainingSpace) * (flexShrink / totalFlexShrink)
       finalSize = math.max(0, baseSize - shrinkSpace)
     end
@@ -100,7 +92,6 @@ function Layout.distributeItems(items, sizes, availableSize, direction, justify,
   local totalGap = gap * math.max(0, #items - 1)
   local totalSize = totalItemSize + totalGap
   local remainingSpace = availableSize - totalSize
-  
   local positions = {}
   local startPos = 0
   
@@ -133,7 +124,6 @@ function Layout.distributeItems(items, sizes, availableSize, direction, justify,
   return positions
 end
 
-
 function Layout.alignItems(items, sizes, availableSize, direction, align)
   local alignments = {}
   
@@ -148,14 +138,10 @@ function Layout.alignItems(items, sizes, availableSize, direction, align)
     elseif align == Layout.ALIGN.CENTER then
       alignment = (availableSize - itemSize) / 2
     elseif align == Layout.ALIGN.STRETCH then
-      
       alignment = 0
     end
-    
     alignments[i] = alignment
   end
-  
   return alignments
 end
-
 return Layout

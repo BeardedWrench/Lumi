@@ -13,48 +13,32 @@ local ButtonElement = Box.BoxElement:extend()
 function ButtonElement:init()
   ButtonElement.__super.init(self)
   
-  
   self.className = "ButtonElement"
-  
-  
   self.text = "Button"
   self.fontSize = Theme.typography.fontSize
   self.disabled = false
-  
-  
   self.idleColor = Theme.colors.button
   self.hoverColor = Theme.colors.hover
   self.pressColor = Theme.colors.press
   self.disabledColor = Theme.colors.disabled
-  
   self.idleTextColor = Theme.colors.text
   self.hoverTextColor = Theme.colors.text
   self.pressTextColor = Theme.colors.text
   self.disabledTextColor = Theme.colors.textDisabled
-  
-  
   self.padding = {Theme.spacing.padding, Theme.spacing.padding, Theme.spacing.padding, Theme.spacing.padding} 
-  
-  
   self._state = 'idle' 
   self._clicked = false
-  
-  
   self._textLabel = nil
 end
 
-
 function ButtonElement:setText(text)
   self.text = text or "Button"
-  
-  
   self:setBackgroundColor(self.idleColor[1], self.idleColor[2], self.idleColor[3], self.idleColor[4])
   if self.borderColor then
     self:setBorderColor(self.borderColor[1], self.borderColor[2], self.borderColor[3], self.borderColor[4])
   end
   self:setBorderWidth(self.borderWidth)
   self:setBorderRadius(self.borderRadius)
-  
   
   if not self._textLabel then
     self._textLabel = Label:Create()
@@ -70,16 +54,11 @@ function ButtonElement:setText(text)
     self._textLabel:setText(self.text)
   end
   
-  
   local TextUtil = require('lumi.core.util.text')
   local textWidth = TextUtil.estimateWidth(self.text)
   local textHeight = self.fontSize
-  
-  
   local buttonWidth = textWidth + self.padding[4] + self.padding[2]  
   local buttonHeight = textHeight + self.padding[1] + self.padding[3]  
-  
-  
   
   if not self._explicitWidth then
     self.w = buttonWidth
@@ -93,11 +72,9 @@ end
 
 function ButtonElement:setFontSize(size)
   self.fontSize = size or Theme.typography.fontSize
-  
   if self._textLabel then
     self._textLabel:setFontSize(self.fontSize)
   end
-  
   return self
 end
 
@@ -111,17 +88,13 @@ function ButtonElement:setDisabled(disabled)
   return self
 end
 
-
 function ButtonElement:setIdleColor(r, g, b, a)
   if type(r) == "table" then
     self.idleColor = r
   else
     self.idleColor = {r or 0.2, g or 0.2, b or 0.2, a or 1}
   end
-  
-  
   self:setBackgroundColor(self.idleColor[1], self.idleColor[2], self.idleColor[3], self.idleColor[4])
-  
   return self
 end
 
@@ -154,11 +127,9 @@ end
 
 
 function ButtonElement:setTextColor(r, g, b, a)
-  
   self:setIdleTextColor(r, g, b, a)
   self:setHoverTextColor(r, g, b, a)
   self:setPressTextColor(r, g, b, a)
-  
   
   if self._textLabel then
     self._textLabel:setTextColor(r, g, b, a)
@@ -205,23 +176,17 @@ end
 
 function ButtonElement:setPadding(padding)
   if type(padding) == "number" then
-    
     self.padding = {padding, padding, padding, padding}
   elseif type(padding) == "table" then
-    
     self.padding = padding
   else
-    
     self.padding = {Theme.spacing.padding, Theme.spacing.padding, Theme.spacing.padding, Theme.spacing.padding}
   end
-  
-  
   if self.text and self.text ~= "" then
     self:setText(self.text) 
   end
   return self
 end
-
 
 function ButtonElement:setSize(w, h)
   self._explicitWidth = w ~= nil
@@ -229,24 +194,18 @@ function ButtonElement:setSize(w, h)
   return ButtonElement.__super.setSize(self, w, h)
 end
 
-
 function ButtonElement:preferredSize()
   local w, h = ButtonElement.__super.preferredSize(self)
-  
   if self.text ~= "" then
-    
     local textWidth = 0
     for i = 1, #self.text do
       textWidth = textWidth + self.fontSize * 0.6 
     end
-    
     w = math.max(w, textWidth + 16) 
     h = math.max(h, self.fontSize + 8) 
   end
-  
   return w, h
 end
-
 
 function ButtonElement:onMouseEnter()
   if not self.disabled then
@@ -275,8 +234,6 @@ function ButtonElement:onMouseRelease(button, x, y)
     if self._clicked then
       self._state = 'hover'
       self._clicked = false
-      
-      
       if self.onClick then
         self:onClick(button, x, y)
       end
@@ -285,13 +242,10 @@ function ButtonElement:onMouseRelease(button, x, y)
   ButtonElement.__super.onMouseRelease(self, button, x, y)
 end
 
-
 function ButtonElement:draw(pass)
   if not self.visible then
     return
   end
-  
-  
   local bgColor
   if self.disabled then
     bgColor = self.disabledColor
@@ -304,7 +258,6 @@ function ButtonElement:draw(pass)
   end
   
   self:setBackgroundColor(bgColor[1], bgColor[2], bgColor[3], bgColor[4])
-  
   
   if self._textLabel then
     local textColor
@@ -321,22 +274,18 @@ function ButtonElement:draw(pass)
     self._textLabel:setTextColor(textColor[1], textColor[2], textColor[3], textColor[4])
   end
   
-  
   local layoutRect = self:getLayoutRect()
   if layoutRect then
     local Draw = require('lumi.core.draw')
     Draw.rect(pass, layoutRect.x, layoutRect.y, layoutRect.w, layoutRect.h, 0, 1, 0, 1)  
   end
   
-  
   ButtonElement.__super.draw(self, pass)
-  
   
   for _, child in ipairs(self.children) do
     child:draw(pass)
   end
 end
-
 
 Button.ButtonElement = ButtonElement
 Button.Create = function() return ButtonElement:Create() end

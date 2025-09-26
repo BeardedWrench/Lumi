@@ -2,7 +2,6 @@ local Measure = {}
 local Text = require('lumi.core.util.text')
 local Theme = require('lumi.core.theme')
 
-
 function Measure.text(text, fontSize, maxWidth, wrapMode)
   fontSize = fontSize or Theme.typography.fontSize
   maxWidth = maxWidth or math.huge
@@ -24,13 +23,11 @@ function Measure.text(text, fontSize, maxWidth, wrapMode)
   end
 end
 
-
 function Measure.elementPreferredSize(element)
   local minWidth = element.minWidth or 0
   local minHeight = element.minHeight or 0
   local preferredWidth = element.preferredWidth or minWidth
   local preferredHeight = element.preferredHeight or minHeight
-  
   
   if element.text then
     local fontSize = element.fontSize or Theme.typography.fontSize
@@ -42,11 +39,9 @@ function Measure.elementPreferredSize(element)
     preferredHeight = math.max(preferredHeight, textHeight)
   end
   
-  
   local padding = element.padding or {0, 0, 0, 0}
   preferredWidth = preferredWidth + padding[1] + padding[3] 
   preferredHeight = preferredHeight + padding[2] + padding[4] 
-  
   
   local borderWidth = element.borderWidth or Theme.spacing.borderWidth
   preferredWidth = preferredWidth + borderWidth * 2
@@ -55,30 +50,22 @@ function Measure.elementPreferredSize(element)
   return preferredWidth, preferredHeight
 end
 
-
 function Measure.calculateLayout(element, parentRect)
   local padding = element.padding or {0, 0, 0, 0}
   local margin = element.margin or {0, 0, 0, 0}
-  
-  
   local contentRect = {
     x = parentRect.x + padding[1],
     y = parentRect.y + padding[2],
     w = parentRect.w - padding[1] - padding[3],
     h = parentRect.h - padding[2] - padding[4]
   }
-  
-  
   local availableRect = {
     x = contentRect.x + margin[1],
     y = contentRect.y + margin[2],
     w = contentRect.w - margin[1] - margin[3],
     h = contentRect.h - margin[2] - margin[4]
   }
-  
-  
   local elementWidth, elementHeight = Measure.elementPreferredSize(element)
-  
   
   if element.fullWidth then
     elementWidth = availableRect.w
@@ -86,20 +73,13 @@ function Measure.calculateLayout(element, parentRect)
   if element.fullHeight then
     elementHeight = availableRect.h
   end
-  
-  
   if element.flexGrow and element.flexGrow > 0 then
-    
   end
-  
   
   elementWidth = math.min(elementWidth, availableRect.w)
   elementHeight = math.min(elementHeight, availableRect.h)
-  
-  
   elementWidth = math.max(elementWidth, element.minWidth or 0)
   elementHeight = math.max(elementHeight, element.minHeight or 0)
-  
   return {
     x = availableRect.x,
     y = availableRect.y,
