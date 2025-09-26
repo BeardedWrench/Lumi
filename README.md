@@ -1,4 +1,4 @@
-# Lumi UI Library for LÖVR
+# LÜMI UI Library for LÖVR
 
 A modular, screen-space UI library for LÖVR with a clean, builder-pattern API inspired by DERMA (Garry's Mod) and HTML/CSS flexbox semantics. Built with atomic design principles and optimized for modern LÖVR builds.
 
@@ -44,7 +44,7 @@ function lovr.load()
     :setPadding(15, 15, 15, 15)
 
   -- Add content to the stack
-  stack:addChild(Label:Create():setText("Welcome to Lumi UI!"))
+  stack:addChild(Label:Create():setText("Welcome to LÜMI UI!"))
   stack:addChild(Button:Create():setText("Click Me!"))
 
   -- Add stack to panel and set as root
@@ -64,7 +64,7 @@ end
 
 ## UI Scaling and Window Resizing
 
-Lumi UI maintains exact pixel sizes by default, ensuring consistent appearance across all window sizes and aspect ratios. Optional manual scaling is available when needed.
+LÜMI UI maintains exact pixel sizes by default, ensuring consistent appearance across all window sizes and aspect ratios. Optional manual scaling is available when needed.
 
 ```lua
 -- Default: No scaling (exact pixel sizes)
@@ -258,7 +258,7 @@ UI.theme:set({
 
 ## LÖVR Compatibility
 
-Lumi UI is designed for modern LÖVR builds and uses current APIs:
+LÜMI UI is designed for modern LÖVR builds and uses current APIs:
 
 - `pass:setProjection()` and `pass:setViewPose()` for orthographic rendering
 - `pass:setFont()` and `pass:text()` for text rendering with proper alignment
@@ -309,7 +309,7 @@ The `examples/` directory contains several demonstration files:
 
 ## Development
 
-Lumi UI follows atomic design principles where complex elements are composed of simpler foundation elements. All elements extend the Base class and support the full lifecycle of creation, layout, update, and rendering.
+LÜMI UI follows atomic design principles where complex elements are composed of simpler foundation elements. All elements extend the Base class and support the full lifecycle of creation, layout, update, and rendering.
 
 The library is designed to be:
 - **Modular**: Each element is self-contained and reusable
