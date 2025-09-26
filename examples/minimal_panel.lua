@@ -21,6 +21,7 @@ function createMinimalUI()
     :setAnchors('left', 'top')
     :setFullWidth(true)
     :setFullHeight(true)
+    :setPadding(15, 15, 15, 15)
   
   local label1 = Label:Create()
     :setText("First Label")

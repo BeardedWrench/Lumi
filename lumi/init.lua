@@ -35,6 +35,7 @@ end
 
 function UI.draw(pass, width, height)
   local context = UI.getContext()
+  pass:setDepthTest('none')
   context:draw(pass, width, height)
 end
 
