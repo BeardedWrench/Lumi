@@ -103,6 +103,16 @@ end
 
 -- Draw the label
 function LabelElement:draw(pass)
+  local rect = self:getLayoutRect()
+  if rect then
+    -- Draw debug background
+    if self.backgroundColor then
+      local bg = self.backgroundColor
+      local alpha = bg[4] * self.alpha
+      Draw.rect(pass, rect.x, rect.y, rect.w, rect.h, bg[1], bg[2], bg[3], alpha)
+    end
+  end
+  
   -- Draw text (from Text parent)
   LabelElement.__super.draw(self, pass)
 end

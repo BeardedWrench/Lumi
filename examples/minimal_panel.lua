@@ -9,6 +9,7 @@ local UI = require('lumi')
 local Panel = UI.Panel
 local Label = UI.Label
 local Button = UI.Button
+local Stack = UI.Stack
 
 -- Create minimal UI
 function createMinimalUI()
@@ -19,6 +20,34 @@ function createMinimalUI()
     :setAnchors('center', 'center')
     :setPos(0, 0)  -- Center anchor means 0,0 is center
     :setClosable(true)
+
+  -- Create a stack for content
+  local stack = Stack:Create()
+    :setDirection('column')
+    :setGap(8)
+    :setAnchors('left', 'top')
+    :setPos(0, 0)  -- Small padding from panel edges
+    :setFullWidth(true)
+    :setFullHeight(true)
+    :setBackgroundColor(0.2, 0.4, 0.8, 0.5)  -- Blue debug background
+
+  -- Create two labels
+  local label1 = Label:Create()
+    :setText("First Label")
+    :setTextColor(1, 1, 1, 1)  -- White text
+    :setBackgroundColor(0.2, 0.8, 0.2, 0.7)  -- Green debug background
+
+  local label2 = Label:Create()
+    :setText("Second Label")
+    :setTextColor(1, 1, 1, 1)  -- White text (changed from gray for visibility)
+    :setBackgroundColor(0.8, 0.2, 0.2, 0.7)  -- Red debug background
+
+  -- Add labels to stack
+  stack:addChild(label1)
+  stack:addChild(label2)
+
+  -- Add stack to panel content
+  panel:addChild(stack)
 
   return panel
 end

@@ -10,6 +10,7 @@ local Label = require('lumi.elements.Label')
 local Button = require('lumi.elements.Button')
 local Theme = require('lumi.core.theme')
 local Draw = require('lumi.core.draw')
+local LayoutSystem = require('lumi.core.layout_system')
 
 -- Panel class
 local PanelElement = Box.BoxElement:extend()
@@ -59,20 +60,85 @@ function PanelElement:_createContentBox()
       :setHeight(self.h - self.titlebarHeight)  -- Remaining height
       :setZIndex(Theme.zLayers.content)
     
-    -- Add content box as child
-    self:addChild(self.contentBox)
+    -- Add content box as child (use parent's addChild to avoid circular reference)
+    PanelElement.__super.addChild(self, self.contentBox)
   end
 end
 
 -- Set panel title
 function PanelElement:setTitle(title)
   self.title = title
+  
+  -- Create titlebar if it doesn't exist (regardless of title)
+  if not self.titlebar then
+    self.titlebar = Box:Create()
+      :setBackgroundColor(0.2, 0.2, 0.2, 1.0)
+      :setBorderWidth(0)
+      :setHeight(self.titlebarHeight)
+      :setFullWidth(true)
+      :setAnchors('left', 'top')
+      :setPos(0, 0)
+      :setZIndex(Theme.zLayers.content + 1)
+    self:addChild(self.titlebar)
+    
+    -- Create content box
+    self:_createContentBox()
+  end
+  
+  -- Create title label if we have a title and titlebar
+  if title and self.titlebar and not self.titleLabel then
+    self.titleLabel = Label:Create()
+      :setTextColor(Theme.colors.text[1], Theme.colors.text[2], Theme.colors.text[3], Theme.colors.text[4])
+      :setAnchors('center', 'center')
+      :setPos(0, 0)
+      :setHeight(self.titlebarHeight)
+      :setZIndex(Theme.zLayers.content + 2)
+    self.titlebar:addChild(self.titleLabel)
+  end
+  
+  -- Update title text if label exists
+  if self.titleLabel then
+    self.titleLabel:setText(title or "")
+  end
+  
   return self
 end
 
 -- Set if panel is closable
 function PanelElement:setClosable(closable)
   self.closable = closable
+  
+  -- Create close button if closable and we have a titlebar
+  if closable and self.titlebar and not self.closeButton then
+    self.closeButton = Button:Create()
+      :setText("×")
+      :setPadding(2)  -- Minimal padding for close button
+      :setAnchors('right', 'center')
+      :setPos(8, 0)
+      :setIdleColor(0.3, 0.3, 0.3, 1.0)
+      :setHoverColor(0.4, 0.4, 0.4, 1.0)
+      :setPressColor(0.2, 0.2, 0.2, 1.0)
+      :setBorderWidth(1)
+      :setBorderColor(0.5, 0.5, 0.5, 1.0)
+      :setBorderRadius(2)
+      :setTextColor(0.8, 0.8, 0.8, 1.0)
+      :setZIndex(Theme.zLayers.content + 2)
+      :onClick(function()
+        if self.onClose then
+          self.onClose()
+        end
+      end)
+    self.titlebar:addChild(self.closeButton)
+  end
+  
+  -- Remove close button if not closable
+  if not closable and self.closeButton then
+    if self.titlebar then
+      self.titlebar:removeChild(self.closeButton)
+    end
+    self.closeButton = nil
+  end
+  
   return self
 end
 
@@ -88,89 +154,17 @@ function PanelElement:onClose(callback)
   return self
 end
 
--- Update method to create/update elements based on properties
-function PanelElement:update()
-  -- Only update if properties have changed
-  if self._lastTitle ~= self.title or self._lastClosable ~= self.closable then
-    self._lastTitle = self.title
-    self._lastClosable = self.closable
-    
-    -- Create titlebar if we have a title
-    if self.title and not self.titlebar then
-      self.titlebar = Box:Create()
-        :setBackgroundColor(0.2, 0.2, 0.2, 1.0)
-        :setBorderWidth(0)
-        :setHeight(self.titlebarHeight)
-        :setFullWidth(true)
-        :setAnchors('left', 'top')
-        :setPos(0, 0)
-        :setZIndex(Theme.zLayers.content + 1)
-      self:addChild(self.titlebar)
-      
-      -- Create content box
-      self:_createContentBox()
-    end
-    
-    -- Create title label if we have a title and titlebar
-    if self.title and self.titlebar and not self.titleLabel then
-      self.titleLabel = Label:Create()
-        :setTextColor(Theme.colors.text[1], Theme.colors.text[2], Theme.colors.text[3], Theme.colors.text[4])
-        :setAnchors('center', 'center')
-        :setPos(0, 0)
-        :setHeight(self.titlebarHeight)
-        :setZIndex(Theme.zLayers.content + 2)
-        :setBackgroundColor(0, 1, 0, 1)  -- BRIGHT GREEN for debugging
-      self.titlebar:addChild(self.titleLabel)
-    end
-    
-    -- Create close button if closable and we have a titlebar
-    if self.closable and self.titlebar and not self.closeButton then
-      self.closeButton = Button:Create()
-        :setText("×")
-        :setPadding(2)  -- Minimal padding for close button
-        :setAnchors('right', 'center')
-        :setPos(8, 0)
-        :setBackgroundColor(0, 1, 0, 1)  -- BRIGHT GREEN for debugging
-        :setBorderWidth(0)
-        :setTextColor(0.8, 0.8, 0.8, 1.0)
-        :setZIndex(Theme.zLayers.content + 2)
-        :onClick(function()
-          if self.onClose then
-            self.onClose()
-          end
-        end)
-      self.titlebar:addChild(self.closeButton)
-    end
-    
-    -- Remove close button if not closable
-    if not self.closable and self.closeButton then
-      if self.titlebar then
-        self.titlebar:removeChild(self.closeButton)
-      end
-      self.closeButton = nil
-    end
-    
-    -- Remove titlebar if no title
-    if not self.title and self.titlebar then
-      self:removeChild(self.titlebar)
-      self.titlebar = nil
-      self.titleLabel = nil
-      self.closeButton = nil
-    end
-  end
-  
-  -- Update title text if it changed
-  if self.titleLabel and self.titleLabel.text ~= self.title then
-    self.titleLabel:setText(self.title)
-  end
+-- Update method - just update children, no element creation
+function PanelElement:update(dt)
+  -- Call parent update to update children
+  PanelElement.__super.update(self, dt)
 end
 
 -- Override layout to handle titlebar and content box positioning
 function PanelElement:layout(rect)
-  local layoutRect = PanelElement.__super.layout(self, rect)
-  
-  -- Update elements based on current properties
-  self:update()
+  -- Set our layout rect directly (don't call parent layout to avoid recursion)
+  self._layoutRect = rect
+  local layoutRect = rect
   
   -- Manually layout titlebar relative to panel's full layout rect
   if self.titlebar then
@@ -180,7 +174,8 @@ function PanelElement:layout(rect)
       w = layoutRect.w,
       h = self.titlebarHeight
     }
-    LayoutSystem.layoutElement(self.titlebar, titlebarRect)
+    -- Set titlebar layout rect directly to avoid recursion
+    self.titlebar._layoutRect = titlebarRect
   end
   
   -- Update content box position and size
@@ -211,6 +206,20 @@ function PanelElement:getContentRect()
     -- No titlebar, use base implementation
     return PanelElement.__super.getContentRect(self)
   end
+end
+
+-- Override addChild to add content to contentBox instead of directly to panel
+function PanelElement:addChild(child)
+  if child then
+    -- If we have a contentBox, add the child to it
+    if self.contentBox then
+      self.contentBox:addChild(child)
+    else
+      -- Fallback to direct addition if no contentBox
+      PanelElement.__super.addChild(self, child)
+    end
+  end
+  return self
 end
 
 -- Override draw to use atomic elements

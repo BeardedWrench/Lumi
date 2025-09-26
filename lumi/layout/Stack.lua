@@ -8,12 +8,16 @@ local Layout = require('lumi.core.layout')
 local Measure = require('lumi.core.measure')
 local Theme = require('lumi.core.theme')
 local LayoutSystem = require('lumi.core.layout_system')
+local Draw = require('lumi.core.draw')
 
 -- Stack class
 local StackElement = Base.BaseElement:extend()
 
 function StackElement:init()
   StackElement.__super.init(self)
+  
+  -- Set className for layout system recognition
+  self.className = "StackElement"
   
   -- Stack-specific properties
   self.direction = Layout.DIRECTION.ROW -- row or column
@@ -239,6 +243,32 @@ function StackElement:_layoutWrapped(contentRect)
   end
 end
 
+-- Override layout to handle flexbox layout
+function StackElement:layout(rect)
+  print("Stack layout called with rect:", rect.x, rect.y, rect.w, rect.h)
+  -- The rect parameter is the parent's content area
+  -- Set our layout rect to this rect
+  self._layoutRect = rect
+  
+  -- Handle full width/height sizing
+  if self.fullWidth then
+    self.w = rect.w
+  end
+  if self.fullHeight then
+    self.h = rect.h
+  end
+  
+  -- Get content area (this will be smaller due to padding)
+  local contentRect = LayoutSystem.getContentArea(self, rect)
+  
+  -- Layout children using flexbox
+  if self.wrap then
+    self:_layoutWrapped(contentRect)
+  else
+    self:_layoutSingleLine(contentRect)
+  end
+end
+
 -- Override draw to render stack
 function StackElement:draw(pass)
   if not self.visible then
@@ -250,12 +280,11 @@ function StackElement:draw(pass)
     return
   end
   
-  -- Draw stack background
+  -- Draw debug background
   if self.backgroundColor then
     local bg = self.backgroundColor
     local alpha = bg[4] * self.alpha
-    Draw.roundedRect(pass, rect.x, rect.y, rect.w, rect.h, 
-      self.borderRadius, bg[1], bg[2], bg[3], alpha)
+    Draw.rect(pass, rect.x, rect.y, rect.w, rect.h, bg[1], bg[2], bg[3], alpha)
   end
   
   -- Draw stack border

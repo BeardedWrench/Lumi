@@ -125,6 +125,10 @@ function LayoutSystem.layoutChildren(element)
   
   -- Check if this is a Stack element
   if element.className == "StackElement" then
+    -- Call Stack's layout method with the content area (which has the correct height)
+    if element.layout then
+      element:layout(contentArea)
+    end
     -- Use stack layout
     LayoutSystem.layoutStack(element, contentArea)
   else
