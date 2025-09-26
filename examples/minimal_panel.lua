@@ -18,8 +18,9 @@ function createMinimalUI()
     :setTitle("Test Panel")
     :setSize(300, 200)
     :setAnchors('center', 'center')
-    :setPos(0, 0)  -- Center anchor means 0,0 is center
+    :setPos(0, 0)  -- No offset, let it be truly centered
     :setClosable(true)
+    :setBackgroundColor(0.2, 0.2, 0.8, 0.8)  -- Bright blue background to make it visible
 
   -- Create a stack for content
   local stack = Stack:Create()

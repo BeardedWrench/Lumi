@@ -30,6 +30,7 @@ function PanelElement:init()
   self.titleLabel = nil
   self.closeButton = nil
   self.contentBox = nil
+  self._contentBoxCreated = false
   
   -- Dragging state
   self._dragging = false
@@ -52,14 +53,13 @@ end
 function PanelElement:_createContentBox()
   if not self.contentBox then
     self.contentBox = Box:Create()
-      :setBackgroundColor(0, 0, 0, 0)  -- Transparent background
+      :setBackgroundColor(1, 0, 0, 0.2)  -- Transparent background
       :setBorderWidth(0)  -- No border
       :setAnchors('left', 'top')
       :setPos(0, self.titlebarHeight)  -- Position below titlebar
       :setFullWidth(true)  -- Full width
-      :setHeight(self.h - self.titlebarHeight)  -- Remaining height
+      :setHeight(100)  -- Temporary height, will be updated in setSize
       :setZIndex(Theme.zLayers.content)
-    
     -- Add content box as child (use parent's addChild to avoid circular reference)
     PanelElement.__super.addChild(self, self.contentBox)
   end
@@ -81,8 +81,11 @@ function PanelElement:setTitle(title)
       :setZIndex(Theme.zLayers.content + 1)
     self:addChild(self.titlebar)
     
-    -- Create content box
-    self:_createContentBox()
+    -- Create content box only if not already created
+    if not self._contentBoxCreated then
+      self:_createContentBox()
+      self._contentBoxCreated = true
+    end
   end
   
   -- Create title label if we have a title and titlebar
@@ -102,6 +105,19 @@ function PanelElement:setTitle(title)
   end
   
   return self
+end
+
+-- Override setSize to update content box height
+function PanelElement:setSize(w, h)
+  local result = PanelElement.__super.setSize(self, w, h)
+  
+  -- Update content box height if it exists
+  if self.contentBox then
+    local contentBoxHeight = self.h - self.titlebarHeight
+    self.contentBox:setHeight(contentBoxHeight)
+  end
+  
+  return result
 end
 
 -- Set if panel is closable
@@ -162,9 +178,9 @@ end
 
 -- Override layout to handle titlebar and content box positioning
 function PanelElement:layout(rect)
-  -- Set our layout rect directly (don't call parent layout to avoid recursion)
+  -- Don't override the calculated position - use the rect as-is
   self._layoutRect = rect
-  local layoutRect = rect
+  local layoutRect = self._layoutRect
   
   -- Manually layout titlebar relative to panel's full layout rect
   if self.titlebar then
@@ -178,11 +194,25 @@ function PanelElement:layout(rect)
     self.titlebar._layoutRect = titlebarRect
   end
   
-  -- Update content box position and size
-  if self.contentBox then
-    self.contentBox:setPos(0, self.titlebarHeight)  -- Position below titlebar
-    self.contentBox:setHeight(layoutRect.h - self.titlebarHeight)  -- Remaining height
-  end
+        -- Update content box position and size
+        if self.contentBox then
+          -- Get the panel's content area (accounting for padding)
+          local contentArea = LayoutSystem.getContentArea(self)
+          if contentArea then
+            -- Position contentBox below titlebar within the content area
+            self.contentBox:setPos(0, self.titlebarHeight)
+            -- Set size to fill remaining space below titlebar within content area
+            local contentBoxHeight = contentArea.h - self.titlebarHeight
+            self.contentBox:setSize(contentArea.w, contentBoxHeight)
+            -- Set the content box's layout rect manually to avoid layout system issues
+            self.contentBox._layoutRect = {
+              x = contentArea.x,
+              y = contentArea.y + self.titlebarHeight,
+              w = contentArea.w,
+              h = contentBoxHeight
+            }
+          end
+        end
   
   return layoutRect
 end

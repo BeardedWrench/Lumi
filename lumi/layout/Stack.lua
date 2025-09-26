@@ -137,18 +137,8 @@ function StackElement:_layoutSingleLine(contentRect)
       -- Set child position relative to content area (not absolute)
       if self.direction == Layout.DIRECTION.ROW then
         child:setPos(position, alignment)
-        child:setSize(size, sizes[i])
       else
         child:setPos(alignment, position)
-        child:setSize(sizes[i], size)
-      end
-      
-      -- Apply full width/height constraints
-      if child.fullWidth then
-        child:setSize(contentRect.w, child.h)
-      end
-      if child.fullHeight then
-        child:setSize(child.w, contentRect.h)
       end
     end
 end
@@ -221,18 +211,8 @@ function StackElement:_layoutWrapped(contentRect)
       -- Set child position relative to content area (not absolute)
       if self.direction == Layout.DIRECTION.ROW then
         child:setPos(position, currentY - contentRect.y + alignment)
-        child:setSize(size, lineSizes[i])
       else
         child:setPos(alignment, currentY - contentRect.y + position)
-        child:setSize(lineSizes[i], size)
-      end
-      
-      -- Apply full width/height constraints
-      if child.fullWidth then
-        child:setSize(contentRect.w, child.h)
-      end
-      if child.fullHeight then
-        child:setSize(child.w, contentRect.h)
       end
     end
     
@@ -245,7 +225,6 @@ end
 
 -- Override layout to handle flexbox layout
 function StackElement:layout(rect)
-  print("Stack layout called with rect:", rect.x, rect.y, rect.w, rect.h)
   -- The rect parameter is the parent's content area
   -- Set our layout rect to this rect
   self._layoutRect = rect

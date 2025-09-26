@@ -64,6 +64,23 @@ end
 -- Set the root element
 function UIContext:setRoot(root)
   self.root = root
+  
+  -- Layout the root element when it's set
+  if self.root then
+    -- Get actual window dimensions and use them for layout
+    local windowWidth, windowHeight = lovr.system.getWindowDimensions()
+    local screenWidth = windowWidth
+    local screenHeight = windowHeight
+    local screenRect = {x = 0, y = 0, w = screenWidth, h = screenHeight}
+    
+    -- Debug: Print actual window size vs our layout size
+    print("=== WINDOW SIZE DEBUG ===")
+    print("Actual window size:", windowWidth, windowHeight)
+    print("UI context screen size:", screenWidth, screenHeight)
+    print("Panel should be centered at y =", (screenHeight - 200) / 2)
+    
+    LayoutSystem.layoutTree(self.root, screenRect)
+  end
 end
 
 -- Get the root element
@@ -115,12 +132,8 @@ function UIContext:draw(pass, width, height)
     pass:setFont(self.font)
   end
   
-  -- Layout root element if it exists using the new layout system
+  -- Draw root element and its children
   if self.root then
-    local screenRect = {x = 0, y = 0, w = scaledWidth, h = scaledHeight}
-    LayoutSystem.layoutTree(self.root, screenRect)
-    
-    -- Draw root element and its children
     self.root:draw(pass)
   end
   

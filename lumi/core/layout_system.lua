@@ -11,10 +11,11 @@ local LayoutSystem = {}
 -- 5. Layout containers: Handle their own children's positioning
 
 -- Layout a single element
-function LayoutSystem.layoutElement(element, parentRect)
+function LayoutSystem.layoutElement(element, parentRect, screenRect)
   if not element or not element.visible then
     return nil
   end
+  
   
   -- Calculate element size
   local elementWidth = element.w or 0
@@ -38,12 +39,18 @@ function LayoutSystem.layoutElement(element, parentRect)
   local x, y = element.x or 0, element.y or 0
   
   if parentRect then
-    -- Child element: position relative to parent's content area
-    x, y = LayoutSystem.applyAnchor(x, y, elementWidth, elementHeight, parentRect, element)
+    -- Check if this is the root element (parentRect is screenRect)
+    if parentRect == screenRect then
+      -- Root element: apply anchor relative to screen
+      x, y = LayoutSystem.applyAnchor(x, y, elementWidth, elementHeight, parentRect, element)
+    else
+      -- Child element: position relative to parent's content area
+      x, y = LayoutSystem.applyAnchor(x, y, elementWidth, elementHeight, parentRect, element)
+    end
   else
-    -- Root element: apply anchor relative to screen
-    -- For now, just use absolute coordinates
+    -- No parent: use absolute coordinates
   end
+  
   
   -- Create layout rectangle
   local layoutRect = {
@@ -52,6 +59,7 @@ function LayoutSystem.layoutElement(element, parentRect)
     w = elementWidth,
     h = elementHeight
   }
+  
   
   -- Store layout rect on element
   element._layoutRect = layoutRect
@@ -113,7 +121,7 @@ function LayoutSystem.getContentArea(element)
 end
 
 -- Layout all children of an element
-function LayoutSystem.layoutChildren(element)
+function LayoutSystem.layoutChildren(element, screenRect)
   if not element.children or #element.children == 0 then
     return
   end
@@ -137,10 +145,10 @@ function LayoutSystem.layoutChildren(element)
       -- Skip titlebar if it's a Panel - it's laid out manually
       if element.className == "PanelElement" and child == element.titlebar then
         -- Titlebar is already laid out manually, just layout its children
-        LayoutSystem.layoutChildren(child)
+        LayoutSystem.layoutChildren(child, screenRect)
       else
-        LayoutSystem.layoutElement(child, contentArea)
-        LayoutSystem.layoutChildren(child) -- Recursively layout grandchildren
+        LayoutSystem.layoutElement(child, contentArea, screenRect)
+        LayoutSystem.layoutChildren(child, screenRect) -- Recursively layout grandchildren
       end
     end
   end
@@ -152,11 +160,12 @@ function LayoutSystem.layoutTree(rootElement, screenRect)
     return
   end
   
-  -- Layout root element with screen as parent
-  LayoutSystem.layoutElement(rootElement, screenRect)
+  
+  -- Layout root element with screen as parent for positioning
+  LayoutSystem.layoutElement(rootElement, screenRect, screenRect)
   
   -- Layout all children recursively
-  LayoutSystem.layoutChildren(rootElement)
+  LayoutSystem.layoutChildren(rootElement, screenRect)
 end
 
 -- Stack layout: Arrange children in a column or row

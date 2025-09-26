@@ -39,12 +39,18 @@ function BoxElement:draw(pass)
     return
   end
   
+  
   -- Draw background
   if self.backgroundColor then
     local bg = self.backgroundColor
     local alpha = bg[4] * self.alpha
     Draw.roundedRect(pass, rect.x, rect.y, rect.w, rect.h, 
       self.borderRadius, bg[1], bg[2], bg[3], alpha)
+  end
+  
+  -- Debug: Draw a bright red border for Panel to see exact position
+  if self.className == "PanelElement" then
+    Draw.rectBorder(pass, rect.x, rect.y, rect.w, rect.h, 2, 1, 0, 0, 1)
   end
   
   -- Draw border
@@ -54,7 +60,7 @@ function BoxElement:draw(pass)
     Draw.rectBorder(pass, rect.x, rect.y, rect.w, rect.h, 
       self.borderWidth, border[1], border[2], border[3], borderAlpha)
   end
-  
+
   -- Draw children
   for _, child in ipairs(self.children) do
     child:draw(pass)
