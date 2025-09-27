@@ -4,8 +4,6 @@ local Draw = require('lumi.core.draw')
 local Theme = require('lumi.core.theme')
 local TextUtil = require('lumi.core.util.text')
 
-
-
 local LabelElement = Text.TextElement:extend()
 
 function LabelElement:init()

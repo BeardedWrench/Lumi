@@ -1,6 +1,3 @@
--- BaseElement Properties Module
--- Handles all property setters and getters
-
 local BaseProperties = {}
 
 function BaseProperties:initProperties()

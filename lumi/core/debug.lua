@@ -113,7 +113,6 @@ function Debug.debugElement(pass, element, depth)
   
   depth = depth or 0
   
-  -- Only draw debug overlays, don't log every frame
   Debug.drawElementBounds(pass, element)
   Debug.drawLayoutRect(pass, element)
   Debug.drawContentRect(pass, element)
@@ -129,7 +128,6 @@ end
 function Debug.debugUI(pass, rootElement)
   if not debugState.enabled then return end
   
-  -- Only draw debug overlays, don't log every frame
   Debug.debugElement(pass, rootElement)
 end
 

@@ -1,11 +1,8 @@
--- BaseElement Layout Module
--- Handles positioning, sizing, and layout calculations
 local LayoutEngine = require('lumi.core.layout_engine')
 
 local BaseLayout = {}
 
 function BaseLayout:getLayoutRect()
-  -- If _layoutRect exists (set by custom layout like Stack), use it
   if self._layoutRect then
     return {
       x = self._layoutRect.x,
@@ -15,7 +12,6 @@ function BaseLayout:getLayoutRect()
     }
   end
   
-  -- Otherwise use the element's own position properties
   return {
     x = self.x,
     y = self.y,

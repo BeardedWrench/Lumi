@@ -75,8 +75,8 @@ function PanelElement:setTitle(title)
     self.titleLabel:setText(title or "")
   end
   
-  -- Set the titlebar as the drag area when title is set
   if self.titlebar then
+    self:setDraggable(true)
     self:setDragArea(self.titlebar)
   end
   
@@ -132,7 +132,6 @@ function PanelElement:setClosable(closable)
   return self
 end
 
--- Draggable setter is inherited from BaseElement
 
 function PanelElement:onClose(callback)
   self.onClose = callback

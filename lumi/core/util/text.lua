@@ -61,8 +61,6 @@ end
 
 function Text.truncate(text, maxWidth)
   local ellipsis = "..."
-  local ellipsisWidth = Text.estimateWidth(ellipsis)
-  
   if Text.estimateWidth(text) <= maxWidth then
     return text
   end

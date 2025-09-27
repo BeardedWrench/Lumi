@@ -29,7 +29,6 @@ function ButtonElement:init()
   self._textLabel = nil
   self.onClick = nil
   
-  -- Set up mouse event callbacks
   self._onMouseEnter = function()
     self:onMouseEnter()
   end
@@ -52,7 +51,6 @@ function ButtonElement:init()
     end
   end
   
-  -- Set initial appearance
   self:_updateAppearance()
 end
 
@@ -76,11 +74,9 @@ function ButtonElement:setText(text)
       :setPos(0, 0)
     self:addChild(self._textLabel)
     
-    -- Auto-size the button based on text content
     self:_updateButtonSize()
   else
     self._textLabel:setText(self.text)
-    -- Update button size when text changes
     self:_updateButtonSize()
   end
   
@@ -196,23 +192,20 @@ function ButtonElement:_updateButtonSize()
   end
   
   local textWidth = TextUtil.estimateWidth(self.text)
-  local textHeight = self.fontSize  -- Use fontSize as height estimate
+  local textHeight = self.fontSize  
   
-  -- Add padding to text dimensions
-  local horizontalPadding = self.padding[2] + self.padding[4]  -- left + right
-  local verticalPadding = self.padding[1] + self.padding[3]    -- top + bottom
+  local horizontalPadding = self.padding[2] + self.padding[4]  
+  local verticalPadding = self.padding[1] + self.padding[3]   
   
   local buttonWidth = textWidth + horizontalPadding
   local buttonHeight = textHeight + verticalPadding
   
-  -- Only update size if not explicitly set
   if not self._explicitWidth then
     self.w = buttonWidth
   end
   if not self._explicitHeight then
     self.h = buttonHeight
   end
-  -- Button auto-sizing complete
 end
 
 function ButtonElement:setCallback(callback)
@@ -294,7 +287,6 @@ function ButtonElement:onMouseRelease(button, x, y)
 end
 
 function ButtonElement:_updateAppearance()
-  -- Update background color based on state
   local bgColor
   if self.disabled then
     bgColor = self.disabledColor
@@ -308,7 +300,6 @@ function ButtonElement:_updateAppearance()
   
   self:setBackgroundColor(bgColor[1], bgColor[2], bgColor[3], bgColor[4])
   
-  -- Update text color based on state
   if self._textLabel then
     local textColor
     if self.disabled then
@@ -330,10 +321,8 @@ function ButtonElement:draw(pass)
     return
   end
   
-  -- Ensure appearance is up to date
   self:_updateAppearance()
   
-  -- Draw the button background and children (Base element handles both)
   ButtonElement.__super.draw(self, pass)
 end
 

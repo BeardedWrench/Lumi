@@ -105,7 +105,6 @@ function StackElement:_layoutSingleLine(contentRect)
         child.x = finalX
         child.y = finalY
         child._layoutRect = {x = finalX, y = finalY, w = child.w or 0, h = child.h or 0}
-        print("DEBUG Stack: Set child", i, "to position", finalX, finalY, "and _layoutRect", finalX, finalY)
       else
         local finalX = contentRect.x + alignment
         local finalY = contentRect.y + position
@@ -113,11 +112,8 @@ function StackElement:_layoutSingleLine(contentRect)
         child.x = finalX
         child.y = finalY
         child._layoutRect = {x = finalX, y = finalY, w = child.w or 0, h = child.h or 0}
-        print("DEBUG Stack: Set child", i, "to position", finalX, finalY, "and _layoutRect", finalX, finalY)
       end
-      -- Mark child as already laid out to prevent regular layout engine from overriding
       child._stackLaidOut = true
-      print("DEBUG Stack: Marked child", i, "as _stackLaidOut = true")
     end
 end
 

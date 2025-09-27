@@ -6,7 +6,6 @@ local Theme = require('lumi.core.theme')
 local Debug = require('lumi.core.debug')
 local LayoutEngine = require('lumi.core.layout_engine')
 
-
 local UIContext = Class:extend()
 
 function UIContext:init()
@@ -27,6 +26,9 @@ function UIContext:init()
   end
   
   Input.init()
+  
+  local Cursor = require('lumi.core.cursor')
+  Cursor.init()
 end
 
 function UIContext:setScale(scale)
@@ -55,6 +57,8 @@ function UIContext:updateLayout()
   local windowWidth, windowHeight = lovr.system.getWindowDimensions()
   
   if self.lastWindowWidth ~= windowWidth or self.lastWindowHeight ~= windowHeight then
+    print("Window resized from", self.lastWindowWidth, "x", self.lastWindowHeight, "to", windowWidth, "x", windowHeight)
+    
     self.lastWindowWidth = windowWidth
     self.lastWindowHeight = windowHeight
     
@@ -63,8 +67,77 @@ function UIContext:updateLayout()
     self.scaledHeight = windowHeight
     
     local screenRect = {x = 0, y = 0, w = self.scaledWidth, h = self.scaledHeight}
+    self.root.x = 0
+    self.root.y = 0
+    
+    self:clearLayoutCache(self.root)
+    if self.root.className == "PanelElement" then
+      self:resetPanelChildren(self.root)
+    end
     
     LayoutEngine.layoutTree(self.root, screenRect)
+  end
+end
+
+function UIContext:clearLayoutCache(element)
+  if not element then
+    return
+  end
+  
+  element._layoutRect = nil
+  
+  if element == self.root then
+    element.x = 0
+    element.y = 0
+  end
+  
+  if element.children then
+    for _, child in ipairs(element.children) do
+      self:clearLayoutCache(child)
+    end
+  end
+end
+
+function UIContext:resetPanelChildren(panel)
+  if not panel or panel.className ~= "PanelElement" then
+    return
+  end
+  
+  if panel.titlebar then
+    panel.titlebar.x = 0
+    panel.titlebar.y = 0
+  end
+  
+  if panel.contentBox then
+    panel.contentBox.x = 0
+    panel.contentBox.y = panel.titlebarHeight or 24
+  end
+  
+  if panel.closeButton then
+    panel.closeButton.x = 8
+    panel.closeButton.y = 0
+  end
+  
+  if panel.titleLabel then
+    panel.titleLabel.x = 0
+    panel.titleLabel.y = 0
+  end
+  
+  self:resetPanelChildrenRecursive(panel)
+end
+
+function UIContext:resetPanelChildrenRecursive(element)
+  if not element or not element.children then
+    return
+  end
+  
+  for _, child in ipairs(element.children) do
+    if child.className == "LabelElement" then
+      child.x = 0
+      child.y = 0
+    end
+    
+    self:resetPanelChildrenRecursive(child)
   end
 end
 
@@ -77,6 +150,10 @@ end
 
 function UIContext:getRoot()
   return self.root
+end
+
+function UIContext:getElementAt(x, y)
+  return Input.findElementAt(x, y, self)
 end
 
 function UIContext:setUIScale(scale)
@@ -120,7 +197,7 @@ function UIContext:textinput(text)
 end
 
 function UIContext:update(dt)
-  Input.update(dt)
+  Input.update(dt, self)
   self:updateLayout()
   self:updateTooltips(dt)
   if self.root then
@@ -147,11 +224,10 @@ function UIContext:draw(pass, width, height)
   self:drawTooltips(pass)
   
   if self.debug then
-    self.debug:debugUI(pass, self.root)
+    self.debug.debugUI(pass, self.root)
   end
   
-      -- Draw debug overlays for hitboxes
-      Input.drawDebugOverlays(pass, self)
+  Input.drawDebugOverlays(pass, self)
 end
 
 function UIContext:addToZLayer(element, zLayer)

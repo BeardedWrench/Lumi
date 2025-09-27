@@ -2,7 +2,8 @@ local Input = {}
 local Drag = require('lumi.core.drag')
 local Debug = require('lumi.core.debug')
 local Draw = require('lumi.core.draw')
-
+local Cursor = require('lumi.core.cursor')
+local Mouse = require('lumi.core.util.lovr-mouse')
 
 Input.state = {
   mouse = {
@@ -29,31 +30,22 @@ function Input.init()
   Input.state.pressed = nil
 end
 
-function Input.update(dt)
-  -- Since lovr.mouse is not available, we'll track mouse position from events
-  -- This is a fallback approach - we'll update mouse position when we get mouse events
-  
-  if lovr.mouse then
-    -- Update mouse position from lovr.mouse
-    local x, y = lovr.mouse.getPosition()
-    if x and y then
-      Input.state.mouse.x = x
-      Input.state.mouse.y = y
-    end
+function Input.update(dt, context)
+  local x, y = Mouse.getPosition()
+  if x and y then
+    Input.state.mouse.x = x
+    Input.state.mouse.y = y
+  end
+  for i = 1, 3 do 
+    local wasPressed = Input.state.mouse.buttons[i] or false
+    local isPressed = Mouse.isDown(i)
+    Input.state.mouse.buttons[i] = isPressed
     
-    for i = 1, 3 do 
-      local wasPressed = Input.state.mouse.buttons[i] or false
-      local isPressed = lovr.mouse.isDown(i)
-      Input.state.mouse.buttons[i] = isPressed
-      
-      if isPressed and not wasPressed then
-        Input.onMousePress(i, Input.state.mouse.x, Input.state.mouse.y)
-      elseif not isPressed and wasPressed then
-        Input.onMouseRelease(i, Input.state.mouse.x, Input.state.mouse.y)
-      end
+    if isPressed and not wasPressed then
+      Input.onMousePress(i, Input.state.mouse.x, Input.state.mouse.y, context)
+    elseif not isPressed and wasPressed then
+      Input.onMouseRelease(i, Input.state.mouse.x, Input.state.mouse.y, context)
     end
-    
-    Input.state.mouse.wheel = lovr.mouse.getWheel()
   end
   
   if lovr.keyboard then
@@ -76,34 +68,34 @@ function Input.update(dt)
       end
     end
   end
+  
+  if Input.state.mouse.x and Input.state.mouse.y then
+    Cursor.update(Input.state.mouse.x, Input.state.mouse.y, context, Drag)
+  end
 end
 
-function Input.updateMousePosition(x, y)
+function Input.updateMousePosition(x, y, context)
   local oldX, oldY = Input.state.mouse.x, Input.state.mouse.y
   Input.state.mouse.x, Input.state.mouse.y = x, y
   
-  -- Handle mouse movement for hover events
   if oldX and oldY and (x ~= oldX or y ~= oldY) then
-    Input.onMouseMove(x, y)
+    Input.onMouseMove(x, y, context)
   end
 end
 
 function Input.onMousePress(button, x, y, context)
-  Input.updateMousePosition(x, y)
+  Input.updateMousePosition(x, y, context)
   local element = Input.findElementAt(x, y, context)
   
-  -- Ensure element is a valid table before proceeding
   if element and type(element) ~= "table" then
     element = nil
   end
   
-  -- Try to start dragging first
   if element and Drag.startDrag(element, x, y, context) then
     Input.state.pressed = element
     return
   end
   
-  -- If not dragging, handle normal mouse press
   if element and element._onMousePress and type(element._onMousePress) == "function" then
     Input.state.pressed = element
     element._onMousePress(button, x, y)
@@ -111,16 +103,14 @@ function Input.onMousePress(button, x, y, context)
 end
 
 function Input.onMouseRelease(button, x, y, context)
-  Input.updateMousePosition(x, y)
+  Input.updateMousePosition(x, y, context)
 
-  -- Stop dragging if we were dragging
   if Drag.isDragging() then
     Drag.stopDrag()
     Input.state.pressed = nil
     return
   end
 
-  -- Handle normal mouse release
   local element = Input.findElementAt(x, y, context)
   if Input.state.pressed and Input.state.pressed == element then
     if element and type(element) == "table" and type(element._onClick) == "function" then
@@ -136,7 +126,6 @@ function Input.onMouseRelease(button, x, y, context)
 end
 
 function Input.onMouseMove(x, y, context)
-  -- Handle dragging first
   if Drag.isDragging() then
     Drag.updateDrag(x, y, context)
     return
@@ -144,17 +133,14 @@ function Input.onMouseMove(x, y, context)
 
   local element = Input.findElementAt(x, y, context)
   
-  -- Special case for close button - if we found a LabelElement with "×" text, return its ButtonElement parent
   if element and element.className == "LabelElement" and element.text == "×" and element.parent and element.parent.className == "ButtonElement" then
     element = element.parent
   end
   
-  -- Ensure element is a valid table before proceeding
   if element and type(element) ~= "table" then
     element = nil
   end
   
-  -- Check if we need to change hover state
   if element ~= Input.state.hover then
     if Input.state.hover and type(Input.state.hover) == "table" then
       if Input.state.hover._onMouseLeave and type(Input.state.hover._onMouseLeave) == "function" then
@@ -162,7 +148,6 @@ function Input.onMouseMove(x, y, context)
       end
     end
     
-    -- Only set hover to valid table elements
     if element and type(element) == "table" then
       Input.state.hover = element
       if element._onMouseEnter and type(element._onMouseEnter) == "function" then
@@ -173,10 +158,11 @@ function Input.onMouseMove(x, y, context)
     end
   end
 
-  -- Call _onMouseMove on current element
   if element and type(element) == "table" and type(element._onMouseMove) == "function" then
     element._onMouseMove(x, y)
   end
+  
+  Cursor.update(x, y, context, Drag)
 end
 
 function Input.onKeyPress(key)
@@ -199,29 +185,35 @@ end
 
 function Input.findElementAt(x, y, context)
   local success, result = pcall(function()
-    -- Get the root element from the provided context
     local root = context:getRoot()
   
     if not root then
       return nil
     end
     
-    -- Convert screen coordinates to UI coordinates
     local scale = context.scale or 1.0
     local uiX = x / scale
     local uiY = y / scale
     
-    -- Find the topmost element at the given coordinates
     local element = Input._findElementAtRecursive(root, uiX, uiY)
     
-    -- Special case: If we found a LabelElement with text "×", check if its parent is a ButtonElement
     if element and element.className == "LabelElement" and element.text == "×" then
       if element.parent and element.parent.className == "ButtonElement" then
         return element.parent
       end
     end
     
-    -- No special cases needed - the drag system handles this cleanly
+    if element and element.parent and element.parent.draggable and element.parent.dragArea then
+      if element.parent.dragArea then
+        local dragRect = element.parent.dragArea:getLayoutRect()
+        if dragRect and uiX >= dragRect.x and uiX <= dragRect.x + dragRect.w and 
+           uiY >= dragRect.y and uiY <= dragRect.y + dragRect.h then
+          return element.parent
+        end
+      else
+        return element.parent
+      end
+    end
     
     return element
   end)
@@ -243,19 +235,15 @@ function Input._findElementAtRecursive(element, x, y)
     return nil
   end
   
-  -- Check if layoutRect is a table
   if type(layoutRect) ~= "table" then
     return nil
   end
   
-  -- Store layout rect for debug drawing
   element._debugLayoutRect = layoutRect
   
-  -- Check if point is within element bounds
   if x >= layoutRect.x and x <= layoutRect.x + layoutRect.w and
      y >= layoutRect.y and y <= layoutRect.y + layoutRect.h then
     
-    -- Check children first (they're drawn on top)
     for i = #element.children, 1, -1 do
       local child = element.children[i]
       local found = Input._findElementAtRecursive(child, x, y)
@@ -272,7 +260,6 @@ function Input._findElementAtRecursive(element, x, y)
       end
     end
     
-    -- If no child was found, return this element
     return element
   end
   
@@ -280,20 +267,17 @@ function Input._findElementAtRecursive(element, x, y)
 end
 
 function Input.drawDebugOverlays(pass, context)
-  -- Check if debug is enabled
   local debugState = Debug.getState()
   if not debugState.enabled or not debugState.showBounds then
     return
   end
   
-  -- Get the root element from the provided context
   local root = context:getRoot()
   
   if not root then
     return
   end
   
-  -- Draw debug overlays for all elements
   Input._drawDebugOverlaysRecursive(root, pass)
 end
 
@@ -302,21 +286,17 @@ function Input._drawDebugOverlaysRecursive(element, pass)
     return
   end
   
-  -- Get layout rect for this element
   local rect = element:getLayoutRect()
   if rect then
-    local color = {1, 0, 0, 0.5} -- Red with transparency
+    local color = {1, 0, 0, 0.5}
     
-    -- Special color for close button
     if element.text == "×" then
-      color = {0, 1, 0, 0.8} -- Green for close button
+      color = {0, 1, 0, 0.8} 
     end
     
-    -- Draw rectangle outline using Draw.rectBorder
     Draw.rectBorder(pass, rect.x, rect.y, rect.w, rect.h, 2, color[1], color[2], color[3], color[4])
   end
   
-  -- Recursively draw children
   if element.children then
     for i = 1, #element.children do
       Input._drawDebugOverlaysRecursive(element.children[i], pass)

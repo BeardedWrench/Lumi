@@ -2,7 +2,6 @@ package.path = package.path .. ";./?.lua;./?/init.lua"
 
 local UI = require('lumi')
 local Debug = require('lumi.core.debug')
-local Input = require('lumi.core.input')
 
 
 
@@ -20,9 +19,7 @@ function createMinimalUI()
     :setClosable(true)
     :setDraggable(true)
   
-  -- Set the close callback after creating the panel
   panel:onClose(function()
-    -- Hide the panel instead of quitting the app
     panel:setVisible(false)
   end)
   

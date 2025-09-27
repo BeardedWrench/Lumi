@@ -1,6 +1,3 @@
--- BaseElement Hierarchy Module
--- Handles parent/child relationships and tree operations
-
 local BaseHierarchy = {}
 
 function BaseHierarchy:addChild(child)

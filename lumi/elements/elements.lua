@@ -1,5 +1,4 @@
 -- LÜMI Elements Module
--- Centralized imports for all UI elements
 
 local Elements = {}
 

@@ -32,7 +32,6 @@ function LayoutEngine.layoutElement(element, parentRect, screenRect)
     h = elementHeight
   }
   
-  -- Update the element's actual position and size
   element.x = x
   element.y = y
   element.w = elementWidth
@@ -65,6 +64,7 @@ function LayoutEngine.applyAnchor(x, y, elementWidth, elementHeight, parentRect,
     finalY = parentY + parentHeight - elementHeight - y
   end
   
+  
   return finalX, finalY
 end
 
@@ -95,33 +95,27 @@ function LayoutEngine.layoutChildren(element, screenRect)
     return
   end
   
+  
   if element.className == "StackElement" then
     if element.layout then
       element:layout(contentArea)
     end
     LayoutEngine.layoutStack(element, contentArea)
-    -- Don't process Stack children with regular layout engine - Stack handles its own children
     return
   else
-    for _, child in ipairs(element.children) do
-      if child.className == "StackElement" then
-        -- Handle Stack elements specially regardless of parent
-        if child.layout then
-          child:layout(contentArea)
+        for _, child in ipairs(element.children) do
+          if child.className == "StackElement" then
+            if child.layout then
+              child:layout(contentArea)
+            end
+            LayoutEngine.layoutStack(child, contentArea)
+          else
+            if not child._stackLaidOut then
+              LayoutEngine.layoutElement(child, contentArea, screenRect)
+              LayoutEngine.layoutChildren(child, screenRect) 
+            end
+          end
         end
-        LayoutEngine.layoutStack(child, contentArea)
-        -- Don't call layoutChildren for Stacks - they handle their own children
-      else
-        -- Skip children that are already laid out by their parent (e.g., Stack children)
-        if not child._stackLaidOut then
-          print("DEBUG layoutChildren: Processing child", child.className, "not laid out (_stackLaidOut =", child._stackLaidOut, ")")
-          LayoutEngine.layoutElement(child, contentArea, screenRect)
-          LayoutEngine.layoutChildren(child, screenRect) 
-        else
-          print("DEBUG layoutChildren: Skipping child", child.className, "already laid out (_stackLaidOut =", child._stackLaidOut, ")")
-        end
-      end
-    end
   end
 end
 
@@ -129,6 +123,7 @@ function LayoutEngine.layoutTree(rootElement, screenRect)
   if not rootElement then
     return
   end
+  
   LayoutEngine.layoutElement(rootElement, screenRect, screenRect)
   LayoutEngine.layoutChildren(rootElement, screenRect)
 end
@@ -216,10 +211,6 @@ function LayoutEngine.layoutStack(stackElement, contentArea)
     child.y = childY - contentArea.y
     child.w = childW
     child.h = childH
-    
-    -- Don't call layoutElement or layoutChildren here - Stack handles its own children
-    -- LayoutEngine.layoutElement(child, contentArea)
-    -- LayoutEngine.layoutChildren(child)
     
     currentPos = currentPos + childSize.main + gap
   end

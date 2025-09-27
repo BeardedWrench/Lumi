@@ -3,7 +3,6 @@ local Base = require('lumi.elements.Base.Base')
 local Draw = require('lumi.core.draw')
 local Theme = require('lumi.core.theme')
 
-
 local RoundedRectElement = Base:extend()
 
 function RoundedRectElement:init()
